@@ -1,0 +1,62 @@
+[user]
+    ; signingkey = "/your/path/to/signingkey.pub"
+    ; email = "your-email"
+    ; name = "your-name"
+[column]
+    ui = auto
+[branch]
+    sort = -committerdate
+[tag]
+    sort = version:refname
+[init]
+    defaultBranch = main
+[push]
+    default = simple
+    autoSetupRemote = true
+    followTags = true
+[pull]
+    rebase = true
+[fetch]
+    prune = true
+    pruneTags = true
+    all = true
+[rebase]
+    updateRefs = true
+[merge]
+    conflictStyle = zdiff3
+[help]
+    autocorrect = prompt
+[gpg]
+    format = ssh
+[core]
+    editor = nvim
+    autocrlf = true
+    excludesfile = ~/.gitignore
+[alias]
+    ; co = sh "branch -l | fzf | checkout"
+    co = checkout
+    bl = branch -l
+    br = branch -r
+    ba = branch -la
+[commit]
+    gpgsign = true
+    verbose = true
+[tag]
+    gpgsign = true
+[tig]
+    main-view-date = relative-compact
+    main-view-id = yes
+    main-view-author = abbreviated
+[rerere]
+    enabled = true
+    autoupdate = true
+[diff]
+    tool = nvim
+    algorithm = histogram
+    colorMoved = plain
+    mnemonicPrefix = true
+    renames = true
+[diff "tool.nvim"]
+	cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
+[difftool]
+	prompt = false
