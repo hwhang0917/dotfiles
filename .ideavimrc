@@ -1,0 +1,25 @@
+set number
+set relativenumber
+set clipboard+=unnamed
+set ideajoin
+
+let mapleader=" "
+
+" keymap
+nnoremap <silent> <C-d> <C-d>zz
+nnoremap <silent> <C-u> <C-u>zz
+nnoremap <silent> n nzzzv
+nnoremap <silent> N Nzzzv
+
+map gr :action FindUsages<CR>
+map gi :action GotoImplementation<CR>
+
+" Yank to system clipboard
+nnoremap <silent> <leader>y "+y
+vnoremap <silent> <leader>y "+y
+nnoremap <silent> <leader>Y "+Y
+
+" Plugins
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'machakann/vim-highlightedyank'
