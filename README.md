@@ -32,3 +32,23 @@
    ```
 
    Replace `<package>` with the name of the package you want to install (e.g., `nvim`, `zsh`, etc.).
+
+## Git Configuration
+
+After stowing git, you want to setup credentials for GitHub. You can do this by running:
+
+```bash
+./scripts/gitinit.sh
+```
+
+The script will generate a `.gitconfig.local` file in your home directory.
+Open this file and fill in your custom configuration, such as your name and email.
+
+## Uninstallation
+
+To uninstall a package, you can use GNU Stow with the `-D` option:
+
+```bash
+stow -D <package>
+```
+

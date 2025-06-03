@@ -1,5 +1,5 @@
 [include]
-    path = ~/.gitconfig-credentials
+    path = ~/.gitconfig.local
 [column]
     ui = auto
 [branch]
