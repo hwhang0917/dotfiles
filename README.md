@@ -9,10 +9,10 @@
 ## Installation
 
 
-1. Clone the repository:
+1. Clone the repository in the home directory:
 
    ```bash
-   git clone https://github.com/hwhang0917/dotfiles.git
+   git clone https://github.com/hwhang0917/dotfiles.git ~/dotfiles
    ```
 
 2. Fetch submodules:
