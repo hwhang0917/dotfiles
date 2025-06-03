@@ -1,7 +1,5 @@
-[user]
-    ; signingkey = "/your/path/to/signingkey.pub"
-    ; email = "your-email"
-    ; name = "your-name"
+[include]
+    path = ~/.gitconfig-credentials
 [column]
     ui = auto
 [branch]

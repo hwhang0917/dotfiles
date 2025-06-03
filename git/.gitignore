@@ -1,0 +1,10 @@
+# This file is used to set up a .gitignore file globally
+
+# MacOS system files
+.DS_Store
+
+# Secrets
+*.pem
+
+# Logs
+*.log
