@@ -1,0 +1,14 @@
+# Looks & Feel
+theme = catppuccin-frappe
+
+font-family = "FiraCode Nerd Font Mono"
+font-size = 15
+
+window-padding-x = 10
+window-padding-y = 2
+
+background-opacity = 0.9
+
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
