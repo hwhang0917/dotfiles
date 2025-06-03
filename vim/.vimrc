@@ -22,3 +22,5 @@ nnoremap <silent> N Nzzzv
 nnoremap <silent> <leader>y "+y
 vnoremap <silent> <leader>y "+y
 nnoremap <silent> <leader>Y "+Y
+
+syntax on
