@@ -1,3 +1,6 @@
 [submodule "nvim/.config/nvim"]
 	path = nvim/.config/nvim
 	url = https://github.com/hwhang0917/nvim
+[submodule "wezterm/.config/wezterm"]
+	path = wezterm/.config/wezterm
+	url = https://github.com/hwhang0917/wezterm.git
