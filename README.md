@@ -38,7 +38,7 @@
 After stowing git, you want to setup credentials for GitHub. You can do this by running:
 
 ```bash
-./scripts/gitinit.sh
+./setup/gitconfig_init.sh
 ```
 
 The script will generate a `.gitconfig.local` file in your home directory.
