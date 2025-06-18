@@ -45,6 +45,14 @@
     main-view-date = relative-compact
     main-view-id = yes
     main-view-author = abbreviated
+[tig "color"]
+    title-focus = white color8
+    title-blur= white color8
+    cursor = black green
+[tig "bind"]
+    generic = y !@bash -c "echo -n '%(commit)' | clip" ; Windows
+    ; generic = y !@bash -c "echo -n '%(commit)' | pbcopy" ; MacOS
+    ; generic = y !@bash -c "echo -n '%(commit)' | xclip -selection" ; Linux
 [rerere]
     enabled = true
     autoupdate = true
