@@ -1,0 +1,12 @@
+# View settings
+set main-view-date = relative-compact
+set main-view-id = yes
+set main-view-author = abbreviated
+
+# Color settings
+color title-focus white color8
+color title-blur white color8
+color cursor black green
+
+# Key bindings - Using external clipboard script
+bind generic y !@cross-copy %(commit)

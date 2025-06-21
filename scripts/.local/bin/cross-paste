@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+
+# clipboard-paste.sh
+# Cross-platform clipboard utility that automatically detects the appropriate
+# clipboard paste command based on the operating system and display server environment.
+#
+# Usage: clipboard-paste.sh
+#        clipboard-paste.sh --quote    (wraps output in quotes)
+#        clipboard-paste.sh --escape   (escapes special characters)
+
+set -euo pipefail  # Enable strict error handling
+
+# Function to display usage information
+show_usage() {
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Cross-platform clipboard paste utility that automatically detects:"
+    echo "  - Windows: uses 'powershell Get-Clipboard' command"
+    echo "  - macOS: uses 'pbpaste' command"
+    echo "  - Linux Wayland: uses 'wl-paste' command"
+    echo "  - Linux X11: uses 'xclip' command"
+    echo ""
+    echo "Options:"
+    echo "  --quote, -q     Wrap output in double quotes"
+    echo "  --escape, -e    Escape special shell characters"
+    echo "  --help, -h      Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                    # Simple paste"
+    echo "  $0 --quote            # Paste with quotes: \"content\""
+    echo "  $0 --escape           # Paste with escaped characters"
+    exit 1
+}
+
+# Function to detect the appropriate clipboard paste command
+detect_paste_command() {
+    # Windows detection - check for MSYS or Cygwin environments
+    if [[ "${OSTYPE:-}" == "msys" || "${OSTYPE:-}" == "cygwin" ]]; then
+        # Windows clip.exe only copies, so we use PowerShell for pasting
+        # This works in both MSYS2/Git Bash and Cygwin environments
+        echo "powershell.exe -Command Get-Clipboard"
+        return 0
+    fi
+
+    # macOS detection - Darwin kernel family
+    if [[ "${OSTYPE:-}" == darwin* ]]; then
+        echo "pbpaste"
+        return 0
+    fi
+
+    # Linux detection - distinguish between Wayland and X11
+    if [[ "${OSTYPE:-}" == linux* || "${OSTYPE:-}" == gnu* ]]; then
+        # Check for Wayland session first
+        if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+            echo "wl-paste"
+            return 0
+        # Fall back to X11 if no Wayland detected
+        elif [[ -n "${DISPLAY:-}" ]]; then
+            echo "xclip -selection clipboard -o"
+            return 0
+        else
+            # No display server detected - this might be a headless system
+            echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
+            return 1
+        fi
+    fi
+
+    # If we reach here, we couldn't detect the platform
+    echo "ERROR: Unsupported platform: ${OSTYPE:-unknown}" >&2
+    return 1
+}
+
+# Function to verify that the detected command is actually available
+verify_paste_command() {
+    local cmd="$1"
+    local base_cmd
+
+    # Extract the base command name (before any arguments)
+    # Handle special case for PowerShell command on Windows
+    if [[ "$cmd" == *"powershell.exe"* ]]; then
+        base_cmd="powershell.exe"
+    else
+        base_cmd=$(echo "$cmd" | awk '{print $1}')
+    fi
+
+    if ! command -v "$base_cmd" >/dev/null 2>&1; then
+        echo "ERROR: Clipboard command '$base_cmd' not found in PATH" >&2
+        echo "Please install the appropriate clipboard utility for your system:" >&2
+        echo "  - Linux Wayland: pacman -S wl-clipboard (or equivalent for your distro)" >&2
+        echo "  - Linux X11: pacman -S xclip (or equivalent for your distro)" >&2
+        echo "  - Windows: PowerShell should be available by default" >&2
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to escape special shell characters
+escape_shell_chars() {
+    local input="$1"
+    # Escape backslashes, quotes, dollar signs, backticks, and newlines
+    # This makes the output safe to use in shell contexts
+    printf '%s' "$input" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\$/\\$/g; s/`/\\`/g'
+}
+
+# Function to apply post-processing options to clipboard content
+process_clipboard_content() {
+    local content="$1"
+    local quote_flag="$2"
+    local escape_flag="$3"
+
+    # Apply escaping first if requested (before quoting)
+    if [[ "$escape_flag" == "true" ]]; then
+        content=$(escape_shell_chars "$content")
+    fi
+
+    # Apply quoting if requested
+    if [[ "$quote_flag" == "true" ]]; then
+        content="\"$content\""
+    fi
+
+    printf '%s' "$content"
+}
+
+# Main execution logic
+main() {
+    local paste_cmd
+    local clipboard_content
+    local quote_flag="false"
+    local escape_flag="false"
+
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                show_usage
+                ;;
+            -q|--quote)
+                quote_flag="true"
+                shift
+                ;;
+            -e|--escape)
+                escape_flag="true"
+                shift
+                ;;
+            *)
+                echo "ERROR: Unknown option: $1" >&2
+                echo "Use --help for usage information" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    # Detect the appropriate clipboard paste command for this platform
+    if ! paste_cmd=$(detect_paste_command); then
+        exit 1
+    fi
+
+    # Verify that the detected command is actually available
+    if ! verify_paste_command "$paste_cmd"; then
+        exit 1
+    fi
+
+    # Execute the paste command and capture its output
+    # We need to handle potential errors from the clipboard command itself
+    if ! clipboard_content=$(eval "$paste_cmd" 2>/dev/null); then
+        echo "ERROR: Failed to retrieve clipboard content" >&2
+        echo "The clipboard might be empty or the clipboard service might be unavailable" >&2
+        exit 1
+    fi
+
+    # Process the content according to user-specified options
+    processed_content=$(process_clipboard_content "$clipboard_content" "$quote_flag" "$escape_flag")
+
+    # Output the processed clipboard content
+    printf '%s' "$processed_content"
+}
+
+# Execute main function with all script arguments
+main "$@"
