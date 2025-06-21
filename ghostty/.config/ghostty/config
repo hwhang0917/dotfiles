@@ -1,7 +1,7 @@
 # Looks & Feel
 theme = catppuccin-frappe
 
-font-family = "FiraCode Nerd Font Mono"
+font-family = "FiraCode Nerd Font Mono Ret"
 font-size = 15
 
 window-padding-x = 10
