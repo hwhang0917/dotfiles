@@ -1,8 +1,3 @@
-# Hyprland configuration on UWSM
-if uwsm check may-start; then
-    exec uwsm start default
-fi
-
 # Zplug
 source $HOME/.zplug/init.zsh
 
