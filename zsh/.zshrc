@@ -26,6 +26,7 @@ alias l="ls -lah"
 alias ls="eza --icons --git"
 alias cat="bat"
 alias sxiv="nsxiv"
+alias docker="podman"
 
 # fnm
 FNM_PATH="/home/hswhang/.local/share/fnm"
