@@ -1,6 +1,12 @@
 # ============== Init ===============
 source $HOME/.zplug/init.zsh
 # ===================================
+#
+# ============ Settings =============
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+# ===================================
 
 # ============= Plugins =============
 zplug "plugins/git", from:oh-my-zsh
@@ -33,9 +39,10 @@ alias docker="podman"
 # ========== PATH & eval ============
 # Constants
 LOCAL_BIN="$HOME/.local/bin"
+LOCAL_SCRIPT="$HOME/.local/scripts"
 
 # Extend PATH
-export PATH="$LOCAL_BIN:$PATH"
+export PATH="$LOCAL_BIN:$LOCAL_SCRIPT:$PATH"
 
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
