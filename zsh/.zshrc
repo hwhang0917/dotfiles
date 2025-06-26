@@ -33,15 +33,9 @@ alias docker="podman"
 # ========== PATH & eval ============
 # Constants
 LOCAL_BIN="$HOME/.local/bin"
-LOCAL_SCRIPTS="$HOME/.local/scripts"
-
-# Create local scripts if it doesn't exists
-if [ ! -d "$LOCAL_SCRIPTS" ]; then
-  mkdir -p "$LOCAL_SCRIPTS"
-fi
 
 # Extend PATH
-export PATH="$LOCAL_BIN:$LOCAL_SCRIPTS:$PATH"
+export PATH="$LOCAL_BIN:$PATH"
 
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
