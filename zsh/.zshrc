@@ -1,5 +1,6 @@
-# Zplug
+# ============== Init ===============
 source $HOME/.zplug/init.zsh
+# ===================================
 
 # ============= Plugins =============
 zplug "plugins/git", from:oh-my-zsh
@@ -18,7 +19,7 @@ fi
 zplug load
 # ===================================
 
-# Custom aliases
+# ============= Aliases =============
 alias p="sudo pacman"
 alias vi="nvim"
 alias vim="nvim"
@@ -27,21 +28,33 @@ alias ls="eza --icons --git"
 alias cat="bat"
 alias sxiv="nsxiv"
 alias docker="podman"
+# ===================================
+
+# ========== PATH & eval ============
+# Constants
+LOCAL_BIN="$HOME/.local/bin"
+LOCAL_SCRIPTS="$HOME/.local/scripts"
+
+# Create local scripts if it doesn't exists
+if [ ! -d "$LOCAL_SCRIPTS" ]; then
+  mkdir -p "$LOCAL_SCRIPTS"
+fi
+
+# Extend PATH
+export PATH="$LOCAL_BIN:$LOCAL_SCRIPTS:$PATH"
 
 # fnm
-FNM_PATH="/home/hswhang/.local/share/fnm"
+FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
-  export PATH="/home/hswhang/.local/share/fnm:$PATH"
+  export PATH="$HOME/.local/share/fnm:$PATH"
   eval "`fnm env`"
 fi
 
 # Starship
 eval "$(starship init zsh)"
 
-. "$HOME/.local/bin/env"
-
 # bun completions
-[ -s "/home/hswhang/.bun/_bun" ] && source "/home/hswhang/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -52,3 +65,9 @@ eval "$(zoxide init zsh)"
 
 # GH CLI
 eval "$(gh copilot alias -- zsh)"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+# ===================================
+
