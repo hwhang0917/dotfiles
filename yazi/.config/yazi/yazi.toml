@@ -1,9 +1,20 @@
 [mgr]
-show_hidden = true
-show_symlink = true
+show_hidden = false
+show_symlink = false
 sort_by = "mtime"
+
 [opener]
 play = [
-    { run = 'vlc "$@"', orphan = true, for = "unix" }
+    { run = 'mpv "$@"', orphan = true, for = "unix" }
+]
+view = [
+    { run = 'imv "$@"', orphan = true, for = "unix" }
 ]
 
+[open]
+rules = [
+    { name = "*/", use = "folder" },
+    { mime = "image/*", use = "view" },
+    { mime = "video/*", use = "play" },
+    { mime = "audio/*", use = "play" },
+]
