@@ -52,11 +52,11 @@ tooltip {
 #workspaces button {
     all:unset;
     padding: 0px 5px;
-    color: alpha(@blue,.4);
+    color: alpha(@blue,.2);
     transition: all .2s ease;
 }
 #workspaces button:hover {
-    color:rgba(0,0,0,0);
+    color: @teal;
     border: none;
     text-shadow: 0px 0px 1.5px rgba(0, 0, 0, .5);
     transition: all 1s ease;
