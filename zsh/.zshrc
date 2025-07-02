@@ -1,7 +1,7 @@
 # ============== Init ===============
 source $HOME/.zplug/init.zsh
 # ===================================
-#
+
 # ============ Settings =============
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
@@ -32,6 +32,8 @@ alias vi="nvim"
 alias vim="nvim"
 alias l="ls -lah"
 alias ls="eza --icons --git"
+alias ll="ls -lh"
+alias la="ls -lAh"
 alias cat="bat"
 alias sxiv="nsxiv"
 alias docker="podman"
@@ -42,15 +44,22 @@ alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
 # Constants
 LOCAL_BIN="$HOME/.local/bin"
 LOCAL_SCRIPT="$HOME/.local/scripts"
+mkdir -p "$LOCAL_BIN" "$LOCAL_SCRIPT"
 
 # Extend PATH
 export PATH="$LOCAL_BIN:$LOCAL_SCRIPT:$PATH"
 
+# Golang Binary
+if command -v go >/dev/null 2>&1; then
+    GOBIN="$(go env GOPATH)/bin"
+    export PATH="$GOBIN:$PATH"
+fi
+
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
-  export PATH="$HOME/.local/share/fnm:$PATH"
-  eval "`fnm env`"
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --use-on-cd)"
 fi
 
 # Starship
