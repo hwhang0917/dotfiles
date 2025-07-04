@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# idleports - Show available ports in range 3000-3099
+# Usage: ./idleports.sh
+
+idleports() {
+    cols=10
+    count=0
+    output=""
+
+    # Use mapfile to properly split command output
+    mapfile -t listening_ports < <(sudo ss -tlpn | grep -o ':30[0-9]*' | sed 's/://g' | sort | uniq)
+
+    for port in {3000..3099}; do
+        # Use a loop to check if port is in array
+        port_found=false
+        for listening_port in "${listening_ports[@]}"; do
+            if [[ "$listening_port" == "$port" ]]; then
+                port_found=true
+                break
+            fi
+        done
+
+        if [[ "$port_found" == true ]]; then
+            output+="\033[38;5;235m$port\033[0m  "
+        else
+            output+="$port  "
+        fi
+
+        ((count++))
+        if ((count % cols == 0)); then
+            output+='\n'
+        fi
+    done
+
+    if ((count % cols != 0)); then
+        output+='\n'
+    fi
+
+    echo -e "$output"
+}
+
+# Execute the function
+idleports
