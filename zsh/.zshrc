@@ -6,7 +6,12 @@ source $HOME/.zplug/init.zsh
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
-export TERM=xterm-256color
+
+if [[ -n "$TMUX" ]]; then
+    export TERM=screen-256color
+else
+    export TERM=xterm-256color
+fi
 # ===================================
 
 # ============= Plugins =============
