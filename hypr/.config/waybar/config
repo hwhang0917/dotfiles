@@ -11,7 +11,8 @@
   "modules-right": [
     "group/expand",
     "bluetooth",
-    "network"
+    "network",
+    "battery"
   ],
   "hyprland/workspaces": {
     "format": "{icon}",
