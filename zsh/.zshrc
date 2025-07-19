@@ -47,6 +47,14 @@ alias docker="podman"
 alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
 # ===================================
 
+# ============ Hacking  ============
+# This section is for some wacky hacking that will make your life easier.
+
+# NetworkManager TUI is hard to read in catppuccin theme, so we change the colors.
+alias nmtui='NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" nmtui'
+
+# ===================================
+
 # ========== PATH & eval ============
 # Constants
 LOCAL_BIN="$HOME/.local/bin"
