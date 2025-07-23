@@ -96,6 +96,9 @@ eval "$(gh copilot alias -- zsh)"
 # Humanlog
 export PATH="$HOME/.humanlog/bin:$PATH"
 
+# Ruby Gem
+export PATH="$HOME/.local/share/gem/ruby/3.4.0/bin:$PATH"
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
