@@ -14,6 +14,7 @@ else
 fi
 
 export EDITOR="nvim"
+export PODMAN_COMPOSE_WARNING_LOGS=false
 # ===================================
 
 # ============= Plugins =============
@@ -52,7 +53,6 @@ alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
 
 # NetworkManager TUI is hard to read in catppuccin theme, so we change the colors.
 alias nmtui='NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" nmtui'
-
 # ===================================
 
 # ========== PATH & eval ============
