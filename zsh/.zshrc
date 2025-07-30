@@ -53,6 +53,20 @@ alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
 
 # NetworkManager TUI is hard to read in catppuccin theme, so we change the colors.
 alias nmtui='NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" nmtui'
+fssh() {
+    local host
+    host=$(grep "^Host " ~/.ssh/config | grep -v "\*" | cut -d" " -f2- | fzf \
+        --height=40% \
+        --layout=reverse \
+        --border \
+        --prompt="SSH > " \
+        --preview="grep -A 10 'Host {}' ~/.ssh/config")
+
+    if [[ -n $host ]]; then
+        echo "Connecting to $host..."
+        ssh "$host"
+    fi
+}
 # ===================================
 
 # ========== PATH & eval ============
