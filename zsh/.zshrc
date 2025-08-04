@@ -60,7 +60,7 @@ fssh() {
         --layout=reverse \
         --border \
         --prompt="SSH > " \
-        --preview="grep -A 10 'Host {}' ~/.ssh/config")
+        --preview="grep -A 4 'Host {}' ~/.ssh/config")
 
     if [[ -n $host ]]; then
         echo "Connecting to $host..."
