@@ -45,7 +45,6 @@ alias ll="ls -lh"
 alias la="ls -lAh"
 alias cat="bat"
 alias sxiv="nsxiv"
-alias docker="podman"
 alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
 # ===================================
 
