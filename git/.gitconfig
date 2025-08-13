@@ -51,6 +51,6 @@
     mnemonicPrefix = true
     renames = true
 [diff "tool.nvim"]
-	cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
+    cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
 [difftool]
-	prompt = false
+    prompt = false
