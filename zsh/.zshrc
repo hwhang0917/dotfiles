@@ -117,6 +117,11 @@ if command -v go >/dev/null 2>&1; then
     export PATH="$GOBIN:$PATH"
 fi
 
+# Go Version Manager (govm)
+if command -v govm >/dev/null 2>&1; then
+    export PATH="$HOME/.govm/shim:$PATH"
+fi
+
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
