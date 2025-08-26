@@ -1,6 +1,7 @@
 # ============== Init ===============
 [[ -f $HOME/.zplug/init.zsh ]] && source $HOME/.zplug/init.zsh || {
-    echo "zplug not found. Install with: curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
+    echo "zplug not found. Install with: "
+    echo "curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
 }
 bindkey -e
 # ===================================
@@ -171,6 +172,7 @@ function zt() {
 # Create local directories
 LOCAL_BIN="$HOME/.local/bin"
 LOCAL_SCRIPT="$HOME/.local/scripts"
+LOCAL_SHARE="$HOME/.local/share"
 mkdir -p "$LOCAL_BIN" "$LOCAL_SCRIPT"
 
 function path_prepend() {
@@ -193,6 +195,7 @@ if command -v govm >/dev/null 2>&1; then
 fi
 
 # fnm (Fast Node Manager)
+[[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm"
 if command -v fnm >/dev/null 2>&1; then
     path_prepend "$HOME/.local/share/fnm"
     eval "$(fnm env)"
