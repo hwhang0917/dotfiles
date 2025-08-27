@@ -1,7 +1,35 @@
+# ============ Utility ==============
+function log() {
+    local GREEN='\033[32m'
+    local YELLOW='\033[33m'
+    local RED='\033[31m'
+    local BLUE='\033[34m'
+    local RESET='\033[0m'
+
+    local msg_type="$1"
+    local msg="$2"
+
+    case "$msg_type" in
+        "INFO")
+            echo -e "${GREEN}[INFO]${RESET} $msg" >&2
+            ;;
+        "WARN")
+            echo -e "${YELLOW}[WARN]${RESET} $msg" >&2
+            ;;
+        "ERROR")
+            echo -e "${RED}[ERROR]${RESET} $msg" >&2
+            ;;
+        *)
+            echo -e "${BLUE}[DEBUG]${RESET} $msg" >&2
+            ;;
+    esac
+}
+# ===================================
+
 # ============== Init ===============
 [[ -f $HOME/.zplug/init.zsh ]] && source $HOME/.zplug/init.zsh || {
-    echo "zplug not found. Install with: "
-    echo "curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
+    log "WARN" "zplug not found. Install with: "
+    log "INFO" "curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
 }
 bindkey -e
 # ===================================
@@ -114,17 +142,17 @@ function nmtui() {
     if command -v nmtui >/dev/null 2>&1; then
         NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" nmtui
     else
-        echo "nmtui command not found."
+        log "ERROR" "nmtui command not found."
     fi
 }
 # SSH connection helper with search filter support
 function fssh() {
     if ! command -v fzf > /dev/null 2>&1; then
-        echo "fzf is not installed. Please install fzf to use this function."
+        log "ERROR" "fzf is not installed. Please install fzf to use this function."
         return 1
     fi
     if [[ ! -f $HOME/.ssh/config ]]; then
-        echo "No SSH config file found at ~/.ssh/config"
+        log "ERROR" "No SSH config file found at ~/.ssh/config"
         return 1
     fi
     local host search_term=""
@@ -138,19 +166,19 @@ function fssh() {
         --preview="grep -A 4 'Host {}' ~/.ssh/config")
 
     if [[ -n $host ]]; then
-        echo "Connecting to $host..."
+        log "INFO" "Connecting to $host..."
         ssh "$host"
     fi
 }
 # Zoxide + Tmux
 function zt() {
     if ! command -v zoxide >/dev/null 2>&1; then
-        echo "zoxide is not installed. Please install zoxide to use this function."
+        log "ERROR" "zoxide is not installed. Please install zoxide to use this function."
         return 1
     fi
 
     if [ -z "$TMUX" ]; then
-        echo "Not inside a tmux session."
+        log "ERROR" "Not inside a tmux session."
         return 1
     fi
     local result
@@ -160,7 +188,7 @@ function zt() {
         result=$(zoxide query --interactive "$1")
     fi
     if [ $? -ne 0 ]; then
-        echo "zoxide query failed or was cancelled."
+        log "WARN" "zoxide query failed or was cancelled."
         return 1
     fi
     local window_name=$(basename "$result")
