@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ -z "$WSL_DISTRO_NAME" ]]; then
+    echo "This script is intended to be run under WSL." >&2
+    exit 1
+fi
+
+EXPLORER="/mnt/c/Windows/explorer.exe"
+[[ -x $EXPLORER ]] || EXPLORER="$(command -v explorer.exe 2>/dev/null)"
+[[ -x $EXPLORER ]] || { echo "explorer.exe not found." >&2; exit 1; }
+
+TARGET="${1:-.}"
+if ! real=$(realpath "$TARGET" 2>/dev/null); then
+    echo "Invalid path: $TARGET" >&2
+    exit 1
+fi
+
+if ! win=$(wslpath -w "$real" 2>/dev/null); then
+    echo "Failed to convert path to Windows format: $real" >&2
+    exit 1
+fi
+
+"$EXPLORER" "$win"

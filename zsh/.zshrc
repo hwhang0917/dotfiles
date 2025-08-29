@@ -68,7 +68,7 @@ fi
 
 # Browser preference
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
-    export BROWSER="$HOME/.local/bin/wsl-zen-browser"
+    export BROWSER="$HOME/.local/bin/wsl-zen"
 fi
 
 # Podman settings
@@ -198,6 +198,28 @@ function zt() {
     fi
     local window_name=$(basename "$result")
     tmux new-window -n "$window_name" -c "$result"
+}
+# Search Duckduckgo
+function ddg() {
+    local query="$*"
+    if [[ -z "$query" ]]; then
+        if command -v gum >/dev/null 2>&1; then
+            query=$(gum input --placeholder "Search DuckDuckGo") || return 1
+        else
+            log "WARN" "Usage: ddg <search terms>"
+            return 1
+        fi
+    fi
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "https://duckduckgo.com/?q=$query"
+    elif command -v open >/dev/null 2>&1; then
+        open "https://duckduckgo.com/?q=$query"
+    elif [[ -n "$BROWSER" ]]; then
+        $BROWSER "https://duckduckgo.com/?q=$query"
+    else
+        log "ERROR" "No suitable method found to open URLs."
+        return 1
+    fi
 }
 # ===================================
 
