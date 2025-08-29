@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [[ -z "$WSL_DISTRO_NAME" ]]; then
+    echo "This script is intended to be run under WSL." >&2
+    exit 1
+fi
+
+ZEN_WINDOW_PATH="/mnt/c/Program Files/Zen Browser/zen.exe"
+if [[ ! -f "$ZEN_WINDOW_PATH" ]]; then
+    echo "Zen Browser is not installed in the expected location: $ZEN_WINDOW_PATH" >&2
+    exit 1
+fi
+
+URL="$1"
+if [[ ! ("$URL" =~ ^/ && -f "$URL") ]]; then
+    exec "$ZEN_WINDOW_PATH" "$URL"
+fi
+
+WINDOWS_TEMP="/mnt/c/Temp"
+mkdir -p "$WINDOWS_TEMP"
+
+FILENAME=$(basename "$URL")
+cp "$URL" "$WINDOWS_TEMP/$FILENAME"
+
+exec "$ZEN_WINDOW_PATH" "file:///C:/Temp/$FILENAME"

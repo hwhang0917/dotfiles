@@ -66,6 +66,11 @@ else
     export EDITOR="vi"
 fi
 
+# Browser preference
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    export BROWSER="$HOME/.local/bin/wsl-zen-browser"
+fi
+
 # Podman settings
 export PODMAN_COMPOSE_WARNING_LOGS=false
 # ===================================
