@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Date/time with seconds
+datetime=$(date +'%Y/%m/%d (%a) %H:%M:%S')
+
+# ----------------------------
+# Battery info (CMB0 is your battery)
+bat_path=/sys/class/power_supply/CMB0
+battery_percent=$(<"$bat_path/capacity")
+battery_status=$(<"$bat_path/status")
+
+if [[ $battery_status == "Charging" ]]; then
+    if   (( battery_percent >= 75 )); then battery_icon="󰂅"
+    elif (( battery_percent >= 50 )); then battery_icon="󰂋"
+    elif (( battery_percent >= 25 )); then battery_icon="󰂇"
+    else                                battery_icon="󰢟"
+    fi
+else
+    if   (( battery_percent >= 75 )); then battery_icon="󰁹"
+    elif (( battery_percent >= 50 )); then battery_icon="󰂀"
+    elif (( battery_percent >= 25 )); then battery_icon="󰁻"
+    else                                battery_icon="󰂎"
+    fi
+fi
+
+# ----------------------------
+# CPU usage (instant read — no sleep)
+read -r _ user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+cpu_total=$((user + nice + system + idle + iowait + irq + softirq + steal))
+cpu_idle=$((idle + iowait))
+state_file="/tmp/sway_cpu_last"
+if [[ -f $state_file ]]; then
+    read last_total last_idle < "$state_file"
+    cpu_diff=$((cpu_total - last_total))
+    idle_diff=$((cpu_idle - last_idle))
+    if (( cpu_diff > 0 )); then
+        cpu_percent=$(( (100 * (cpu_diff - idle_diff)) / cpu_diff ))
+    else
+        cpu_percent=0
+    fi
+else
+    cpu_percent=0
+fi
+echo "$cpu_total $cpu_idle" > "$state_file"
+
+# ----------------------------
+# Memory usage
+mem_total=$(grep -Po '^MemTotal:\s+\K\d+' /proc/meminfo)
+mem_avail=$(grep -Po '^MemAvailable:\s+\K\d+' /proc/meminfo)
+memory_percent=$(( (100 * (mem_total - mem_avail)) / mem_total ))
+
+# ----------------------------
+# Wi-Fi status
+iface="wlp1s0"
+if [[ -d "/sys/class/net/$iface" ]]; then
+    operstate=$(<"/sys/class/net/$iface/operstate")
+    if [[ $operstate == "up" ]]; then
+        ssid=$(iw dev "$iface" link | awk -F': ' '/SSID/ {print $2}')
+        if [[ -n $ssid ]]; then
+            wifi_status="󰖩 $ssid"
+        else
+            wifi_status="󰖪 disconnected"
+        fi
+    else
+        wifi_status="󰖭 disabled"
+    fi
+else
+    wifi_status="󰖭 disabled"
+fi
+
+# ----------------------------
+# Output with fixed-width formatting (no jitter)
+printf "%s | %s  󰍛 %3d%%  󰻠 %3d%%  %s %3d%%\n" \
+    "$datetime" "$wifi_status" "$memory_percent" "$cpu_percent" "$battery_icon" "$battery_percent"
+
