@@ -145,7 +145,7 @@ alias sxiv="nsxiv"
 # NetworkManager TUI is hard to read in catppuccin theme, so we change the colors.
 function nmtui() {
     if command -v nmtui >/dev/null 2>&1; then
-        NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" nmtui
+        NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" command nmtui
     else
         log "ERROR" "nmtui command not found."
     fi
