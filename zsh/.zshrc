@@ -142,14 +142,11 @@ alias sxiv="nsxiv"
 # ============ Hacking  ============
 # This section is for some wacky hacking that will make your life easier.
 
-# NetworkManager TUI is hard to read in catppuccin theme, so we change the colors.
-function nmtui() {
-    if command -v nmtui >/dev/null 2>&1; then
-        NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black" command nmtui
-    else
-        log "ERROR" "nmtui command not found."
-    fi
-}
+# NEWT TUI color change
+# Hard to see white on yellow in dark mode terminal (especially for nmtui)
+if command -v nmtui >/dev/null 2>&1; then
+    export NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black"
+fi
 # SSH connection helper with search filter support
 function fssh() {
     if ! command -v fzf > /dev/null 2>&1; then
