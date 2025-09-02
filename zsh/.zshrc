@@ -254,11 +254,9 @@ if command -v fnm >/dev/null 2>&1; then
 fi
 
 # bun (JavaScript runtime)
+[[ -d "$HOME/.bun" ]] && path_prepend "$HOME/.bun/bin"
 if command -v bun >/dev/null 2>&1; then
-    export BUN_INSTALL="$HOME/.bun"
-    path_prepend "$BUN_INSTALL/bin"
-    # bun completions
-    [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+    source "$HOME/.bun/_bun"
 fi
 
 # Starship
