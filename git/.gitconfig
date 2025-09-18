@@ -28,7 +28,8 @@
     format = ssh
 [core]
     editor = nvim
-    autocrlf = input
+    autocrlf = false
+    safecrlf = true
     excludesfile = ~/.gitignore
 [alias]
     ; co = sh "branch -l | fzf | checkout"
