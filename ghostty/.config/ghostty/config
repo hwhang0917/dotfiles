@@ -1,8 +1,8 @@
 # Looks & Feel
 theme = catppuccin-frappe.conf
 
-# font-family = "FiraCode Nerd Font Mono Ret"
-font-family = "Terminess Nerd Font Mono"
+font-family = "FiraCode Nerd Font Mono Ret"
+# font-family = "Terminess Nerd Font Mono"
 font-size = 16
 font-feature = "-calt, -liga, -dlig"
 
