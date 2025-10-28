@@ -1,5 +1,5 @@
 # Looks & Feel
-theme = catppuccin-frappe
+theme = catppuccin-frappe.conf
 
 # font-family = "FiraCode Nerd Font Mono Ret"
 font-family = "Terminess Nerd Font Mono"
