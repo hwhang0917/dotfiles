@@ -1,0 +1,23 @@
+{
+    "icon_theme": "Material Icon Theme",
+    "relative_line_numbers": "enabled",
+    "features": {
+        "edit_prediction_provider": "copilot"
+    },
+    "cursor_blink": false,
+    "ui_font_family": "나눔고딕OTF",
+    "buffer_font_family": "FiraCode Nerd Font Mono",
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false
+    },
+    "vim_mode": true,
+    "base_keymap": "VSCode",
+    "ui_font_size": 16.0,
+    "buffer_font_size": 18.0,
+    "theme": {
+        "mode": "light",
+        "light": "macOS Classic Light",
+        "dark": "One Dark"
+    }
+}

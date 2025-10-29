@@ -1,0 +1,10 @@
+[
+    {
+        "context": "Editor",
+        "bindings": {
+            "ctrl-c": "editor::AcceptEditPrediction",
+            "ctrl-v": "editor::Paste",
+            "ctrl-w": "pane::CloseActiveItem"
+        }
+    }
+]
