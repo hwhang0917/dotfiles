@@ -99,6 +99,8 @@ fi
 alias l="ls -lah"
 alias ll="ls -lh"
 alias la="ls -lAh"
+alias ..="cd .."
+alias ...="cd ../.."
 
 # OS-Specific aliases
 case "$(uname -s)" in
@@ -133,6 +135,11 @@ fi
 
 if command -v bat >/dev/null 2>&1; then
     alias cat="bat"
+fi
+
+# Zoxide alias
+if command -v z >/dev/null 2>&1; then
+    alias cd="z"
 fi
 
 # Deprecation aliases
