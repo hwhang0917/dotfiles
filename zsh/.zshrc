@@ -369,3 +369,6 @@ fi
 
 export PATH
 # ===================================
+
+# opencode
+export PATH=/home/hswhang/.opencode/bin:$PATH
