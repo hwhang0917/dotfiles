@@ -107,6 +107,16 @@ Windows does not support GNU Stow. Use symbolic links manually instead.
 
    # AutoHotkey (symlink to Startup folder for auto-launch)
    New-Item -ItemType SymbolicLink -Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\hotkey.ahk" -Target "$HOME\dotfiles\autohotkey\hotkey.ahk"
+
+   # Neovim
+   New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\nvim" -Target "$HOME\dotfiles\nvim\.config\nvim"
+
+   # Git
+   New-Item -ItemType SymbolicLink -Path "$HOME\.gitconfig" -Target "$HOME\dotfiles\git\.gitconfig"
+   New-Item -ItemType SymbolicLink -Path "$HOME\.gitignore" -Target "$HOME\dotfiles\git\.gitignore"
+
+   # Windows Terminal
+   New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Target "$HOME\dotfiles\wt\settings.json"
    ```
 
 ## Git Configuration
