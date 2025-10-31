@@ -307,3 +307,6 @@ fi
 
 export PATH
 # ===================================
+
+# bun completions
+[ -s "/home/hswhang/.bun/_bun" ] && source "/home/hswhang/.bun/_bun"
