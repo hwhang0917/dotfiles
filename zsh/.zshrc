@@ -102,6 +102,12 @@ alias la="ls -lAh"
 alias ..="cd .."
 alias ...="cd ../.."
 
+# Podman
+if command -v podman >/dev/null 2>&1; then
+    alias docker="podman"
+    alias docker-compose="podman-compose"
+fi
+
 # OS-Specific aliases
 case "$(uname -s)" in
     Linux)
