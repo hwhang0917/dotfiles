@@ -102,12 +102,6 @@ alias la="ls -lAh"
 alias ..="cd .."
 alias ...="cd ../.."
 
-# Podman
-if command -v podman >/dev/null 2>&1; then
-    alias docker="podman"
-    alias docker-compose="podman-compose"
-fi
-
 # OS-Specific aliases
 case "$(uname -s)" in
     Linux)
@@ -276,8 +270,6 @@ fi
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 # Zoxide
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
-# GH CLI
-command -v gh >/dev/null 2>&1 && eval "$(gh copilot alias -- zsh)"
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
