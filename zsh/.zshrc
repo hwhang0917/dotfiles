@@ -274,10 +274,7 @@ if command -v govm >/dev/null 2>&1; then
 fi
 
 # fnm (Fast Node Manager)
-if command -v fnm >/dev/null 2>&1; then
-    [[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm"
-    eval "$(fnm env)"
-fi
+[[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm" && eval "$(fnm env)"
 
 # bun (JavaScript runtime)
 [[ -d "$HOME/.bun" ]] && path_prepend "$HOME/.bun/bin"
