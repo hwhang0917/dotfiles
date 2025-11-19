@@ -137,11 +137,6 @@ if command -v bat >/dev/null 2>&1; then
     alias cat="bat"
 fi
 
-# Zoxide alias
-if command -v z >/dev/null 2>&1; then
-    alias cd="z"
-fi
-
 # Deprecation aliases
 alias sxiv="nsxiv"
 # ===================================
@@ -149,11 +144,6 @@ alias sxiv="nsxiv"
 # ============ Hacking  ============
 # This section is for some wacky hacking that will make your life easier.
 
-# NEWT TUI color change
-# Hard to see white on yellow in dark mode terminal (especially for nmtui)
-if command -v nmtui >/dev/null 2>&1; then
-    export NEWT_COLORS="root=white,black;window=white,black;border=yellow,black;listbox=white,black;label=white,black;checkbox=white,black;compactbutton=white,black;textbox=yellow,black;entry=yellow,black;editline=yellow,black"
-fi
 # SSH connection helper with search filter support
 function fssh() {
     if ! command -v fzf > /dev/null 2>&1; then
@@ -179,6 +169,7 @@ function fssh() {
         ssh "$host"
     fi
 }
+# USQL connection helper with search filter support
 function fusql() {
     if ! command -v fzf > /dev/null 2>&1; then
         log "ERROR" "fzf is not installed. Please install fzf to use this function."
