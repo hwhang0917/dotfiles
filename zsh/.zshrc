@@ -179,6 +179,39 @@ function fssh() {
         ssh "$host"
     fi
 }
+function fusql() {
+    if ! command -v fzf > /dev/null 2>&1; then
+        log "ERROR" "fzf is not installed. Please install fzf to use this function."
+        return 1
+    fi
+    if ! command -v usql > /dev/null 2>&1; then
+        log "ERROR" "usql is not installed. Please install usql to use this function."
+        return 1
+    fi
+
+    local config_file="$HOME/.config/usql/config.yaml"
+    if [[ ! -f $config_file ]]; then
+        log "ERROR" "No usql config file found at $config_file"
+        return 1
+    fi
+
+    local search_term="$1"
+    local db
+
+    db=$(grep -E '^\s+[a-z_][a-z0-9_]*:\s' "$config_file" | \
+        sed 's/^\s*//;s/:\s.*//' | \
+        fzf \
+        --height=40% \
+        --layout=reverse \
+        --border \
+        --prompt="USQL > " \
+        --query="$search_term")
+
+    if [[ -n $db ]]; then
+        log "INFO" "Connecting to $db..."
+        usql "$db"
+    fi
+}
 # Zoxide + Tmux
 function zt() {
     if ! command -v zoxide >/dev/null 2>&1; then
