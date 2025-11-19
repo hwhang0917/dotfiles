@@ -121,17 +121,13 @@ fi
 # GNU tool modern replacements
 if command -v eza >/dev/null 2>&1; then
     alias ls="eza --icons --git"
-    alias ll="ls -lh"
-    alias la="ls -lAh"
 elif command -v exa >/dev/null 2>&1; then
     alias ls="exa --icons --git"
-    alias ll="ls -lh"
-    alias la="ls -lAh"
 else
     alias ls="ls --color=auto"
-    alias ll="ls -lh --color=auto"
-    alias la="ls -lAh --color=auto"
 fi
+alias ll="ls -lh"
+alias la="ls -lAh"
 
 if command -v bat >/dev/null 2>&1; then
     alias cat="bat"
