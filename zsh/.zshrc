@@ -206,17 +206,17 @@ function zt() {
         return 1
     fi
 
-    if [ -z "$TMUX" ]; then
+    if [[ -z "$TMUX" ]]; then
         log "ERROR" "Not inside a tmux session."
         return 1
     fi
     local result
-    if [ -z "$1" ]; then
+    if [[ -z "$1" ]]; then
         result=$(zoxide query --interactive)
     else
         result=$(zoxide query --interactive "$1")
     fi
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         log "WARN" "zoxide query failed or was cancelled."
         return 1
     fi
@@ -274,9 +274,8 @@ if command -v govm >/dev/null 2>&1; then
 fi
 
 # fnm (Fast Node Manager)
-[[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm"
 if command -v fnm >/dev/null 2>&1; then
-    path_prepend "$HOME/.local/share/fnm"
+    [[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm"
     eval "$(fnm env)"
 fi
 
@@ -287,9 +286,9 @@ if command -v bun >/dev/null 2>&1; then
 fi
 
 # Starship
-command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found."
 # Zoxide
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found."
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
