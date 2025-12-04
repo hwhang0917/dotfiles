@@ -158,7 +158,7 @@ function fssh() {
         --border \
         --prompt="SSH > " \
         --query="$search_term" \
-        --preview="grep -A 4 'Host {}' ~/.ssh/config")
+        --preview="grep -A 2 'Host {}' ~/.ssh/config")
 
     if [[ -n $host ]]; then
         log "INFO" "Connecting to $host..."
