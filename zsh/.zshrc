@@ -282,6 +282,9 @@ if command -v bun >/dev/null 2>&1; then
     source "$HOME/.bun/_bun"
 fi
 
+# Opencode (CLI)
+[[ -d "$HOME/.opencode/bin" ]] && path_prepend "$HOME/.opencode/bin"
+
 # Starship
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found."
 # Zoxide
