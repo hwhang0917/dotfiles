@@ -1,0 +1,13 @@
+# Git
+\.git
+\.gitmodules
+\.gitignore
+
+# Documentation
+README\.md
+LICENSE
+
+# Non-stow directories
+^setup$
+^packages$
+^bootstrap\.sh$

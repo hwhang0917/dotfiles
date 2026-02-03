@@ -1,0 +1,15 @@
+# Local git configuration (not tracked by git)
+# Copy this file to ~/.gitconfig.local and fill in your details
+
+[credential "https://github.com"]
+    helper =
+    helper = !/usr/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper =
+    helper = !/usr/bin/gh auth git-credential
+
+[user]
+    name = Your Name
+    email = your.email@example.com
+    signingKey = ~/.ssh/id_ed25519.pub

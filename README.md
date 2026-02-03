@@ -4,10 +4,24 @@
 
 ## Prerequisites
 
+- [git](https://git-scm.com/)
 - [stow](https://www.gnu.org/software/stow/)
 
-## Installation
+## Quick Start
 
+```bash
+git clone https://github.com/hwhang0917/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./bootstrap.sh
+```
+
+The bootstrap script will:
+- Initialize git submodules
+- Detect your platform (Linux/WSL/macOS/Windows)
+- Suggest appropriate packages to stow
+- Optionally set up git local configuration
+
+## Manual Installation
 
 1. Clone the repository in the home directory:
 
@@ -18,16 +32,13 @@
 2. Fetch submodules:
 
    ```bash
-   cd dotfiles
+   cd ~/dotfiles
    git submodule update --init --recursive
    ```
-
-   This will ensure that all the necessary submodules are cloned, such as `nvim`, `zsh`, etc.
 
 3. Install the dotfiles using GNU Stow:
 
    ```bash
-   cd dotfiles
    stow <package>
    ```
 
@@ -35,14 +46,19 @@
 
 ## Git Configuration
 
-After stowing git, you want to setup credentials for GitHub. You can do this by running:
+After stowing git, set up your local credentials:
 
 ```bash
 ./setup/gitconfig_init.sh
 ```
 
-The script will generate a `.gitconfig.local` file in your home directory.
-Open this file and fill in your custom configuration, such as your name and email.
+Or manually copy the example file:
+
+```bash
+cp ~/dotfiles/git/.gitconfig.local.example ~/.gitconfig.local
+```
+
+Edit `~/.gitconfig.local` with your name, email, and signing key.
 
 ## Uninstallation
 
