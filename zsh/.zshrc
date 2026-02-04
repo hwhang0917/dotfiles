@@ -34,8 +34,7 @@ function log() {
 
 # ============== Init ===============
 [[ -f $HOME/.zplug/init.zsh ]] && source $HOME/.zplug/init.zsh || {
-    log "WARN" "zplug not found. Install with: "
-    log "INFO" "curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
+    log "WARN" "zplug not found." "curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh"
 }
 bindkey -e
 # ===================================
@@ -292,11 +291,11 @@ fi
 [[ -d "$HOME/.opencode/bin" ]] && path_prepend "$HOME/.opencode/bin"
 
 # Starship
-command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found."
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found." "https://starship.rs/"
 # Zoxide
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found."
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found." "https://github.com/ajeetdsouza/zoxide"
 # Tirith
-command -v tirith >/dev/null 2>&1 && eval "$(tirith init)" || log "WARN" "tirith not found."
+command -v tirith >/dev/null 2>&1 && eval "$(tirith init)" || log "WARN" "tirith not found." "https://github.com/sheeki03/tirith"
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
