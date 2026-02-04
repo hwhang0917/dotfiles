@@ -4,10 +4,12 @@ function log() {
     local YELLOW='\033[33m'
     local RED='\033[31m'
     local BLUE='\033[34m'
+    local GRAY='\033[2m'
     local RESET='\033[0m'
 
     local msg_type="$1"
     local msg="$2"
+    local comment="$3"
 
     case "$msg_type" in
         "INFO")
@@ -23,6 +25,10 @@ function log() {
             echo -e "${BLUE}[DEBUG]${RESET} $msg" >&2
             ;;
     esac
+
+    if [ -n "$comment" ]; then
+        echo -e "${GRAY}  $comment${RESET}" >&2
+    fi
 }
 # ===================================
 
@@ -289,6 +295,8 @@ fi
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found."
 # Zoxide
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found."
+# Tirith
+command -v tirith >/dev/null 2>&1 && eval "$(tirith init)" || log "WARN" "tirith not found."
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
@@ -307,6 +315,3 @@ fi
 
 export PATH
 # ===================================
-
-# bun completions
-[ -s "/home/hswhang/.bun/_bun" ] && source "/home/hswhang/.bun/_bun"
