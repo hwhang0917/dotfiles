@@ -2,3 +2,6 @@
 	path = nvim/.config/nvim
 	url = https://github.com/hwhang0917/nvim
     branch = master
+[submodule "wezterm"]
+	path = wezterm
+	url = https://github.com/hwhang0917/wezterm
