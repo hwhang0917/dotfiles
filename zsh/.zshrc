@@ -273,6 +273,12 @@ if command -v go >/dev/null 2>&1; then
     path_prepend "$GOBIN"
 fi
 
+# Cargo Binary
+if command -v cargo >/dev/null 2>&1; then
+    CARGO_BIN="$HOME/.cargo/bin"
+    path_prepend "$CARGO_BIN"
+fi
+
 # govm (Go Version Manager)
 if command -v govm >/dev/null 2>&1; then
     path_prepend "$HOME/.govm/shim"
@@ -294,8 +300,6 @@ fi
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found." "https://starship.rs/"
 # Zoxide
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found." "https://github.com/ajeetdsouza/zoxide"
-# Tirith
-command -v tirith >/dev/null 2>&1 && eval "$(tirith init)" || log "WARN" "tirith not found." "https://github.com/sheeki03/tirith"
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
