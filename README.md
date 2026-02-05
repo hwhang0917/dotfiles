@@ -64,6 +64,8 @@ The bootstrap script will:
 
 ## Manual Installation
 
+### Linux / macOS / WSL
+
 1. Clone the repository:
 
    ```bash
@@ -81,6 +83,37 @@ The bootstrap script will:
 
    ```bash
    stow <package>
+   ```
+
+### Windows
+
+Windows does not support GNU Stow. Use symbolic links manually instead.
+
+1. Clone the repository:
+
+   ```powershell
+   git clone https://github.com/hwhang0917/dotfiles.git $HOME\dotfiles
+   cd $HOME\dotfiles
+   git submodule update --init --recursive
+   ```
+
+2. Create symbolic links (run PowerShell as Administrator):
+
+   ```powershell
+   # Komorebi
+   New-Item -ItemType SymbolicLink -Path "$HOME\.config\komorebi" -Target "$HOME\dotfiles\komorebi\.config\komorebi"
+
+   # GlazeWM
+   New-Item -ItemType SymbolicLink -Path "$HOME\.glzr" -Target "$HOME\dotfiles\glzr\.glzr"
+
+   # AutoHotkey (adjust path as needed)
+   New-Item -ItemType SymbolicLink -Path "$HOME\Documents\AutoHotkey" -Target "$HOME\dotfiles\autohotkey\Documents\AutoHotkey"
+   ```
+
+   Or use `mklink` in Command Prompt (as Administrator):
+
+   ```cmd
+   mklink /D "%USERPROFILE%\.config\komorebi" "%USERPROFILE%\dotfiles\komorebi\.config\komorebi"
    ```
 
 ## Git Configuration
