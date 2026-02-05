@@ -1,6 +1,12 @@
+<p align="center">
+  <img src="assets/runfridge.jpg" alt="profile image of running refrigerator" width="200">
+</p>
+
 # Dotfiles
 
 > Configuration files for my development environment.
+
+![GitHub License](https://img.shields.io/github/license/hwhang0917/dotfiles)
 
 ## Prerequisites
 
