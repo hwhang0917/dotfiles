@@ -16,6 +16,7 @@ cd ~/dotfiles
 ```
 
 The bootstrap script will:
+
 1. Check for required dependencies (git, stow)
 2. Initialize git submodules
 3. Detect your platform and suggest packages
@@ -24,43 +25,6 @@ The bootstrap script will:
    - `n` - Skip package installation
    - `custom` - Choose specific packages to stow
 5. Optionally set up git local configuration
-
-## Available Packages
-
-### Common (all platforms)
-
-| Package | Description |
-|---------|-------------|
-| git | Git configuration |
-| zsh | Zsh shell configuration |
-| tmux | Tmux terminal multiplexer |
-| nvim | Neovim configuration |
-| vim | Vim configuration |
-| scripts | Utility scripts |
-| tig | Tig git interface |
-| yazi | Yazi file manager |
-
-### Linux / WSL / macOS
-
-| Package | Description |
-|---------|-------------|
-| ghostty | Ghostty terminal |
-
-### Linux / WSL
-
-| Package | Description |
-|---------|-------------|
-| hypr | Hyprland window manager |
-| sway | Sway window manager |
-| kime | Kime Korean IME |
-
-### Windows
-
-| Package | Description |
-|---------|-------------|
-| komorebi | Komorebi tiling window manager |
-| glzr | Glazewm configuration |
-| autohotkey | AutoHotkey scripts |
 
 ## Manual Installation
 
@@ -190,4 +154,3 @@ sudo pacman -S git stow
 # macOS
 brew install git stow
 ```
-
