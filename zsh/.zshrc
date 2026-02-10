@@ -118,9 +118,19 @@ case "$(uname -s)" in
 esac
 
 # Editor aliases
-if command -v nvim > /dev/null 2>&1; then
+if command -v nvim >/dev/null 2>&1; then
     alias vi="nvim"
     alias vim="nvim"
+fi
+
+# Claude Code aliases
+if command -v claude >/dev/null 2>&1; then
+    alias c="claude"
+    alias cc="claude -c"
+    alias cr="claude -r"
+fi
+if command -v claudelytics >/dev/null 2>&1; then
+    alias ca="claudelytics"
 fi
 
 # GNU tool modern replacements
