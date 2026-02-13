@@ -30,3 +30,7 @@ If available, prefer using the following CLI tools over their more common counte
 - `jq` for JSON processing over manual parsing with tools like `grep`
 - `fd` over `find` for file searching tasks.
 - `rg` over `grep` for text searching tasks.
+
+### Version Control
+
+If it is a git repository, try to make meaningful and atomic commits with clear messages.
