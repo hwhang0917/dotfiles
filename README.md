@@ -12,6 +12,7 @@
 
 - [git](https://git-scm.com/)
 - [stow](https://www.gnu.org/software/stow/)
+- [curl](https://curl.se/)
 
 ## Quick Start
 
@@ -23,14 +24,37 @@ cd ~/dotfiles
 
 The bootstrap script will:
 
-1. Check for required dependencies (git, stow)
+1. Check for required dependencies (git, stow, curl)
 2. Initialize git submodules
-3. Detect your platform and suggest packages
-4. Prompt for package selection:
-   - `Y` - Stow all suggested packages
+3. Detect your platform (linux, wsl, macos, windows)
+4. Check for optional tools and offer to install missing ones:
+
+   | Tool | Description | Install method |
+   |------|-------------|----------------|
+   | [fzf](https://github.com/junegunn/fzf) | Fuzzy finder | pacman / apt / brew |
+   | [zoxide](https://github.com/ajeetdsouza/zoxide) | Smarter cd | pacman / brew / install script |
+   | [eza](https://github.com/eza-community/eza) | Modern ls | pacman / brew / cargo |
+   | [bat](https://github.com/sharkdp/bat) | Modern cat | pacman / apt / brew |
+   | [gum](https://github.com/charmbracelet/gum) | Shell scripting toolkit | pacman / brew / go install |
+   | [starship](https://starship.rs/) | Prompt | pacman / brew / install script |
+   | [fnm](https://github.com/Schniz/fnm) | Fast Node Manager | pacman / brew / install script |
+   | [zplug](https://github.com/zplug/zplug) | Zsh plugin manager | pacman / brew / install script |
+
+5. Prompt for stow package selection:
+   - `Y` - Stow all suggested packages for your platform
    - `n` - Skip package installation
    - `custom` - Choose specific packages to stow
-5. Optionally set up git local configuration
+6. Optionally set up git local configuration
+
+### Platform packages
+
+| Platform | Stow packages |
+|----------|---------------|
+| Common (all) | git, zsh, tmux, nvim, vim, scripts, tig, yazi |
+| Linux | hypr, sway, ghostty, kime |
+| WSL | _(common only)_ |
+| macOS | ghostty |
+| Windows | komorebi, glzr, autohotkey |
 
 ## Manual Installation
 
@@ -139,12 +163,15 @@ git submodule sync
 git submodule update --init --recursive --force
 ```
 
-### Missing starship/zoxide warnings
+### Missing optional tool warnings
 
-These are optional dependencies. Install them to remove warnings:
+The bootstrap script can install these automatically. To re-run just the install step:
 
-- **starship**: https://starship.rs/
-- **zoxide**: https://github.com/ajeetdsouza/zoxide
+```bash
+./bootstrap.sh
+```
+
+Or install manually — see the [optional tools table](#quick-start) above for links.
 
 ### Bootstrap fails with "Missing required dependencies"
 
@@ -152,11 +179,11 @@ Install the prerequisites first:
 
 ```bash
 # Debian/Ubuntu
-sudo apt install git stow
+sudo apt install git stow curl
 
 # Arch
-sudo pacman -S git stow
+sudo pacman -S git stow curl
 
 # macOS
-brew install git stow
+brew install git stow curl
 ```

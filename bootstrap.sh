@@ -4,6 +4,12 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Install URLs (update these when upstream changes)
+ZPLUG_INSTALL_URL="https://raw.githubusercontent.com/zplug/installer/master/installer.zsh"
+STARSHIP_INSTALL_URL="https://starship.rs/install.sh"
+ZOXIDE_INSTALL_URL="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
+FNM_INSTALL_URL="https://fnm.vercel.app/install"
+
 RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[33m'
@@ -15,9 +21,13 @@ log_warn()  { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 log_error() { echo -e "${RED}[ERROR]${RESET} $1"; }
 log_step()  { echo -e "${BLUE}[STEP]${RESET} $1"; }
 
+TMPDIR_BOOTSTRAP=""
+cleanup() { [[ -n "$TMPDIR_BOOTSTRAP" ]] && rm -rf "$TMPDIR_BOOTSTRAP"; }
+trap cleanup EXIT
+
 check_dependencies() {
     local missing=()
-    for cmd in git stow; do
+    for cmd in git stow curl; do
         if ! command -v "$cmd" &>/dev/null; then
             missing+=("$cmd")
         fi
@@ -27,6 +37,196 @@ check_dependencies() {
         log_error "Missing required dependencies: ${missing[*]}"
         exit 1
     fi
+}
+
+download_and_exec() {
+    local url="$1"
+    shift
+    local shell_cmd=("$@")
+
+    TMPDIR_BOOTSTRAP="${TMPDIR_BOOTSTRAP:-$(mktemp -d)}"
+    local tmpfile="$TMPDIR_BOOTSTRAP/installer_$$_$RANDOM"
+
+    if ! curl -fsSL --retry 3 --retry-delay 2 -o "$tmpfile" "$url"; then
+        log_error "Failed to download: $url"
+        return 1
+    fi
+
+    if [[ ! -s "$tmpfile" ]]; then
+        log_error "Downloaded empty file from: $url"
+        return 1
+    fi
+
+    "${shell_cmd[@]}" "$tmpfile"
+}
+
+try_install() {
+    local name="$1"
+    shift
+    log_info "Installing $name..."
+    if "$@"; then
+        log_info "$name installed"
+    else
+        log_warn "Failed to install $name, skipping"
+    fi
+}
+
+# Maps command name -> package name per manager
+pkg_name() {
+    local manager="$1" cmd="$2"
+    case "$manager:$cmd" in
+        pacman:bat)      echo "bat" ;;
+        pacman:eza)      echo "eza" ;;
+        pacman:fzf)      echo "fzf" ;;
+        pacman:gum)      echo "gum" ;;
+        pacman:zoxide)   echo "zoxide" ;;
+        pacman:starship) echo "starship" ;;
+        pacman:fnm)      echo "fnm" ;;
+        apt:bat)         echo "bat" ;;
+        apt:fzf)         echo "fzf" ;;
+        brew:*)          echo "$cmd" ;;
+        *)               echo "" ;;
+    esac
+}
+
+install_optional_deps() {
+    local platform="$1"
+    local deps=(fzf zoxide eza bat gum starship fnm zplug)
+
+    log_step "Checking optional dependencies..."
+    local missing=()
+    for cmd in "${deps[@]}"; do
+        case "$cmd" in
+            zplug) [[ -d "$HOME/.zplug" ]] || missing+=("$cmd") ;;
+            *)     command -v "$cmd" &>/dev/null || missing+=("$cmd") ;;
+        esac
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        log_info "All optional dependencies already installed"
+        return
+    fi
+
+    log_warn "Missing optional tools: ${missing[*]}"
+    read -rp "Install missing tools? [Y/n]: " choice
+    choice="${choice:-y}"
+    [[ ! "$choice" =~ ^[Yy] ]] && return
+
+    case "$platform" in
+        linux|wsl)
+            if command -v pacman &>/dev/null; then
+                install_deps_pacman "${missing[@]}"
+            elif command -v apt &>/dev/null; then
+                install_deps_apt "${missing[@]}"
+            else
+                log_warn "Unsupported package manager, install manually: ${missing[*]}"
+            fi
+            ;;
+        macos)
+            if command -v brew &>/dev/null; then
+                install_deps_brew "${missing[@]}"
+            else
+                log_warn "Homebrew not found, install manually: ${missing[*]}"
+            fi
+            ;;
+        *)
+            log_warn "Unsupported platform for auto-install: ${missing[*]}"
+            ;;
+    esac
+}
+
+install_deps_pacman() {
+    local tools=("$@")
+    local pacman_pkgs=()
+    local manual=()
+
+    for tool in "${tools[@]}"; do
+        local pkg
+        pkg=$(pkg_name pacman "$tool")
+        if [[ -n "$pkg" ]]; then
+            pacman_pkgs+=("$pkg")
+        else
+            manual+=("$tool")
+        fi
+    done
+
+    if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
+        sudo pacman -S --needed --noconfirm "${pacman_pkgs[@]}" || log_warn "Some pacman packages failed"
+    fi
+
+    for tool in "${manual[@]}"; do
+        install_with_script "$tool"
+    done
+}
+
+install_deps_apt() {
+    local tools=("$@")
+    local apt_pkgs=()
+    local manual=()
+
+    for tool in "${tools[@]}"; do
+        local pkg
+        pkg=$(pkg_name apt "$tool")
+        if [[ -n "$pkg" ]]; then
+            apt_pkgs+=("$pkg")
+        else
+            manual+=("$tool")
+        fi
+    done
+
+    if [[ ${#apt_pkgs[@]} -gt 0 ]]; then
+        sudo apt update && sudo apt install -y "${apt_pkgs[@]}" || log_warn "Some apt packages failed"
+    fi
+
+    for tool in "${manual[@]}"; do
+        install_with_script "$tool"
+    done
+}
+
+install_deps_brew() {
+    local tools=("$@")
+    local manual=()
+
+    for tool in "${tools[@]}"; do
+        local pkg
+        pkg=$(pkg_name brew "$tool")
+        if [[ -n "$pkg" ]]; then
+            try_install "$tool" brew install "$pkg"
+        else
+            manual+=("$tool")
+        fi
+    done
+
+    for tool in "${manual[@]}"; do
+        install_with_script "$tool"
+    done
+}
+
+install_with_script() {
+    local tool="$1"
+    case "$tool" in
+        starship) try_install starship download_and_exec "$STARSHIP_INSTALL_URL" sh -s -- -y ;;
+        zoxide)   try_install zoxide download_and_exec "$ZOXIDE_INSTALL_URL" sh ;;
+        fnm)      try_install fnm download_and_exec "$FNM_INSTALL_URL" bash -s -- --skip-shell ;;
+        zplug)    try_install zplug download_and_exec "$ZPLUG_INSTALL_URL" zsh ;;
+        eza)
+            if command -v cargo &>/dev/null; then
+                try_install eza cargo install eza
+            else
+                log_warn "eza requires cargo, skipping"
+            fi
+            ;;
+        gum)
+            if command -v go &>/dev/null; then
+                try_install gum go install github.com/charmbracelet/gum@latest
+            else
+                log_warn "gum requires go, skipping"
+            fi
+            ;;
+        *)
+            log_warn "No auto-install method for $tool"
+            ;;
+    esac
 }
 
 detect_platform() {
@@ -75,7 +275,10 @@ select_packages() {
     packages+=("${common_packages[@]}")
 
     case "$platform" in
-        linux|wsl)
+        wsl)
+            packages+=()
+            ;;
+        linux)
             packages+=(hypr sway ghostty kime)
             ;;
         macos)
@@ -155,6 +358,7 @@ main() {
     platform=$(detect_platform)
 
     init_submodules
+    install_optional_deps "$platform"
     interactive_stow "$platform"
     setup_git_config
 
