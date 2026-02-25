@@ -1,0 +1,219 @@
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "actions": [],
+    "copyFormatting": "none",
+    "copyOnSelect": false,
+    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "disableAnimations": true,
+    "keybindings": 
+    [
+        {
+            "id": "Terminal.CopyToClipboard",
+            "keys": "ctrl+c"
+        },
+        {
+            "id": "Terminal.PasteFromClipboard",
+            "keys": "ctrl+v"
+        },
+        {
+            "id": "Terminal.DuplicatePaneAuto",
+            "keys": "alt+shift+d"
+        }
+    ],
+    "newTabMenu": 
+    [
+        {
+            "icon": null,
+            "profile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{0b7d3686-d272-5a0d-8105-319bb8f1b722}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{f0c84f7d-cabf-41d4-9117-c4723d5e8b07}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{0e1258ee-10d7-4afc-a6e5-508e505b1507}",
+            "type": "profile"
+        }
+    ],
+    "profiles": 
+    {
+        "defaults": 
+        {
+            "adjustIndistinguishableColors": "indexed",
+            "colorScheme": "rose-pine-dawn",
+            "cursorShape": "filledBox",
+            "experimental.retroTerminalEffect": false,
+            "font": 
+            {
+                "face": "FiraCode Nerd Font Mono",
+                "size": 14
+            },
+            "opacity": 95,
+            "useAcrylic": false
+        },
+        "list": 
+        [
+            {
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": true,
+                "name": "\uba85\ub839 \ud504\ub86c\ud504\ud2b8"
+            },
+            {
+                "elevate": false,
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "hidden": false,
+                "name": "PowerShell",
+                "source": "Windows.Terminal.PowershellCore"
+            },
+            {
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": true,
+                "name": "Windows PowerShell"
+            },
+            {
+                "guid": "{0b7d3686-d272-5a0d-8105-319bb8f1b722}",
+                "hidden": false,
+                "name": "archlinux",
+                "source": "Microsoft.WSL"
+            },
+            {
+                "guid": "{f2c6f723-7627-5962-878b-101da9166e2c}",
+                "hidden": true,
+                "name": "Developer Command Prompt for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{98cf5b99-156d-5466-a06d-b81ff36744df}",
+                "hidden": true,
+                "name": "Developer PowerShell for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i",
+                "guid": "{f0c84f7d-cabf-41d4-9117-c4723d5e8b07}",
+                "hidden": false,
+                "icon": "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico",
+                "name": "Git Bash"
+            },
+            {
+                "commandline": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\"",
+                "elevate": true,
+                "guid": "{0e1258ee-10d7-4afc-a6e5-508e505b1507}",
+                "hidden": false,
+                "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                "name": "PowerShell (Administrator)",
+                "startingDirectory": "%USERPROFILE%"
+            }
+        ]
+    },
+    "schemes": 
+    [
+        {
+            "background": "#FAF4ED",
+            "black": "#F2E9DE",
+            "blue": "#56949F",
+            "brightBlack": "#6E6A86",
+            "brightBlue": "#56949F",
+            "brightCyan": "#D7827E",
+            "brightGreen": "#286983",
+            "brightPurple": "#907AA9",
+            "brightRed": "#B4637A",
+            "brightWhite": "#575279",
+            "brightYellow": "#EA9D34",
+            "cursorColor": "#9893A5",
+            "cyan": "#D7827E",
+            "foreground": "#575279",
+            "green": "#286983",
+            "name": "rose-pine-dawn",
+            "purple": "#907AA9",
+            "red": "#B4637A",
+            "selectionBackground": "#EEE9E6",
+            "white": "#575279",
+            "yellow": "#EA9D34"
+        },
+        {
+            "background": "#232136",
+            "black": "#393552",
+            "blue": "#9CCFD8",
+            "brightBlack": "#817C9C",
+            "brightBlue": "#9CCFD8",
+            "brightCyan": "#EA9A97",
+            "brightGreen": "#3E8FB0",
+            "brightPurple": "#C4A7E7",
+            "brightRed": "#EB6F92",
+            "brightWhite": "#E0DEF4",
+            "brightYellow": "#F6C177",
+            "cursorColor": "#59546D",
+            "cyan": "#EA9A97",
+            "foreground": "#E0DEF4",
+            "green": "#3E8FB0",
+            "name": "rose-pine-moon",
+            "purple": "#C4A7E7",
+            "red": "#EB6F92",
+            "selectionBackground": "#312F44",
+            "white": "#E0DEF4",
+            "yellow": "#F6C177"
+        }
+    ],
+    "theme": "light",
+    "themes": 
+    [
+        {
+            "name": "rose-pine-dawn",
+            "tab": 
+            {
+                "background": "#FAF4EDFF",
+                "iconStyle": "default",
+                "showCloseButton": "always",
+                "unfocusedBackground": null
+            },
+            "tabRow": 
+            {
+                "background": "#F2E9E1FF",
+                "unfocusedBackground": "#797593FF"
+            },
+            "window": 
+            {
+                "applicationTheme": "light",
+                "experimental.rainbowFrame": false,
+                "frame": null,
+                "unfocusedFrame": null,
+                "useMica": false
+            }
+        },
+        {
+            "name": "rose-pine-moon",
+            "tab": 
+            {
+                "background": "#232136FF",
+                "iconStyle": "default",
+                "showCloseButton": "always",
+                "unfocusedBackground": null
+            },
+            "tabRow": 
+            {
+                "background": "#393552FF",
+                "unfocusedBackground": "#908CAAFF"
+            },
+            "window": 
+            {
+                "applicationTheme": "dark",
+                "experimental.rainbowFrame": false,
+                "frame": null,
+                "unfocusedFrame": null,
+                "useMica": false
+            }
+        }
+    ],
+    "useAcrylicInTabRow": true
+}
