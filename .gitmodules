@@ -5,3 +5,4 @@
 [submodule "wezterm"]
 	path = wezterm
 	url = https://github.com/hwhang0917/wezterm
+    branch = master
