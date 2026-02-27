@@ -30,6 +30,7 @@ If available, prefer using the following CLI tools over their more common counte
 - `jq` for JSON processing over manual parsing with tools like `grep`
 - `fd` over `find` for file searching tasks.
 - `rg` over `grep` for text searching tasks.
+- `uv` or `uvx` over `pip` or `pip3` for Python package management.
 
 ### Version Control
 
