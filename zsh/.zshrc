@@ -238,6 +238,52 @@ function zt() {
     local window_name=$(basename "$result")
     tmux new-window -n "$window_name" -c "$result"
 }
+# WireGuard toggle helper with fzf
+function fwg() {
+    if ! command -v fzf > /dev/null 2>&1; then
+        log "ERROR" "fzf is not installed. Please install fzf to use this function."
+        return 1
+    fi
+
+    local conf_dir="/etc/wireguard"
+    if [[ ! -d "$conf_dir" ]]; then
+        log "ERROR" "No WireGuard config directory found at $conf_dir"
+        return 1
+    fi
+
+    local search_term="$1"
+    local active_ifaces=$(sudo wg show interfaces 2>/dev/null)
+
+    local selected
+    selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" -printf "%f\n" 2>/dev/null | \
+        sed 's/\.conf$//' | \
+        while read -r iface; do
+            if echo "$active_ifaces" | grep -qw "$iface"; then
+                echo "$iface [UP]"
+            else
+                echo "$iface [DOWN]"
+            fi
+        done | \
+        fzf \
+        --height=40% \
+        --layout=reverse \
+        --border \
+        --prompt="WireGuard > " \
+        --query="$search_term")
+
+    if [[ -n "$selected" ]]; then
+        local iface=$(echo "$selected" | awk '{print $1}')
+        local state=$(echo "$selected" | awk '{print $2}')
+
+        if [[ "$state" == "[UP]" ]]; then
+            log "INFO" "Bringing down $iface..."
+            sudo wg-quick down "$iface"
+        else
+            log "INFO" "Bringing up $iface..."
+            sudo wg-quick up "$iface"
+        fi
+    fi
+}
 # Search Duckduckgo
 function ddg() {
     local query="$*"
