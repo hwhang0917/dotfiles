@@ -275,8 +275,6 @@ function fwg() {
         local iface=$(echo "$selected" | awk '{print $1}')
         local state=$(echo "$selected" | awk '{print $2}')
 
-        sudo resolvconf -u
-
         if [[ "$state" == "[UP]" ]]; then
             log "INFO" "Bringing down $iface..."
             sudo wg-quick down "$iface"
