@@ -4,10 +4,9 @@
     "actions": [],
     "copyFormatting": "none",
     "copyOnSelect": false,
-    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "defaultProfile": "{1267b126-61b7-572b-ba14-98df18927a82}",
     "disableAnimations": true,
-    "keybindings": 
-    [
+    "keybindings": [
         {
             "id": "Terminal.CopyToClipboard",
             "keys": "ctrl+c"
@@ -21,8 +20,7 @@
             "keys": "alt+shift+d"
         }
     ],
-    "newTabMenu": 
-    [
+    "newTabMenu": [
         {
             "icon": null,
             "profile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
@@ -30,45 +28,47 @@
         },
         {
             "icon": null,
-            "profile": "{0b7d3686-d272-5a0d-8105-319bb8f1b722}",
-            "type": "profile"
-        },
-        {
-            "icon": null,
-            "profile": "{f0c84f7d-cabf-41d4-9117-c4723d5e8b07}",
-            "type": "profile"
-        },
-        {
-            "icon": null,
             "profile": "{0e1258ee-10d7-4afc-a6e5-508e505b1507}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{1b44aef4-bf52-4d09-bc4a-0fcf59939ad7}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{1267b126-61b7-572b-ba14-98df18927a82}",
+            "type": "profile"
+        },
+        {
+            "icon": null,
+            "profile": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
             "type": "profile"
         }
     ],
-    "profiles": 
-    {
-        "defaults": 
-        {
+    "profiles": {
+        "defaults": {
             "adjustIndistinguishableColors": "indexed",
             "colorScheme": "rose-pine-dawn",
             "cursorShape": "filledBox",
             "experimental.retroTerminalEffect": false,
-            "font": 
-            {
+            "font": {
                 "face": "FiraCode Nerd Font Mono",
                 "size": 14
             },
             "opacity": 95,
             "useAcrylic": false
         },
-        "list": 
-        [
+        "list": [
             {
                 "commandline": "%SystemRoot%\\System32\\cmd.exe",
                 "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
                 "hidden": true,
-                "name": "\uba85\ub839 \ud504\ub86c\ud504\ud2b8"
+                "name": "명령 프롬프트"
             },
             {
+                "colorScheme": "Campbell Powershell",
                 "elevate": false,
                 "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
                 "hidden": false,
@@ -79,12 +79,6 @@
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
                 "hidden": true,
                 "name": "Windows PowerShell"
-            },
-            {
-                "guid": "{0b7d3686-d272-5a0d-8105-319bb8f1b722}",
-                "hidden": false,
-                "name": "archlinux",
-                "source": "Microsoft.WSL"
             },
             {
                 "guid": "{f2c6f723-7627-5962-878b-101da9166e2c}",
@@ -99,13 +93,7 @@
                 "source": "Windows.Terminal.VisualStudio"
             },
             {
-                "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i",
-                "guid": "{f0c84f7d-cabf-41d4-9117-c4723d5e8b07}",
-                "hidden": false,
-                "icon": "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico",
-                "name": "Git Bash"
-            },
-            {
+                "colorScheme": "Campbell Powershell",
                 "commandline": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\"",
                 "elevate": true,
                 "guid": "{0e1258ee-10d7-4afc-a6e5-508e505b1507}",
@@ -113,11 +101,23 @@
                 "icon": "ms-appx:///ProfileIcons/pwsh.png",
                 "name": "PowerShell (Administrator)",
                 "startingDirectory": "%USERPROFILE%"
+            },
+            {
+                "commandline": "C:\\Program Files\\Git\\bin\\bash.exe -i",
+                "guid": "{1b44aef4-bf52-4d09-bc4a-0fcf59939ad7}",
+                "hidden": false,
+                "icon": "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico",
+                "name": "Git Bash"
+            },
+            {
+                "guid": "{1267b126-61b7-572b-ba14-98df18927a82}",
+                "hidden": false,
+                "name": "archlinux",
+                "source": "Microsoft.WSL"
             }
         ]
     },
-    "schemes": 
-    [
+    "schemes": [
         {
             "background": "#FAF4ED",
             "black": "#F2E9DE",
@@ -166,24 +166,20 @@
         }
     ],
     "theme": "light",
-    "themes": 
-    [
+    "themes": [
         {
             "name": "rose-pine-dawn",
-            "tab": 
-            {
+            "tab": {
                 "background": "#FAF4EDFF",
                 "iconStyle": "default",
                 "showCloseButton": "always",
                 "unfocusedBackground": null
             },
-            "tabRow": 
-            {
+            "tabRow": {
                 "background": "#F2E9E1FF",
                 "unfocusedBackground": "#797593FF"
             },
-            "window": 
-            {
+            "window": {
                 "applicationTheme": "light",
                 "experimental.rainbowFrame": false,
                 "frame": null,
@@ -193,20 +189,17 @@
         },
         {
             "name": "rose-pine-moon",
-            "tab": 
-            {
+            "tab": {
                 "background": "#232136FF",
                 "iconStyle": "default",
                 "showCloseButton": "always",
                 "unfocusedBackground": null
             },
-            "tabRow": 
-            {
+            "tabRow": {
                 "background": "#393552FF",
                 "unfocusedBackground": "#908CAAFF"
             },
-            "window": 
-            {
+            "window": {
                 "applicationTheme": "dark",
                 "experimental.rainbowFrame": false,
                 "frame": null,
