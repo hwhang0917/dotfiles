@@ -105,8 +105,8 @@ Windows does not support GNU Stow. Use symbolic links manually instead.
    # GlazeWM + Zebar
    New-Item -ItemType SymbolicLink -Path "$HOME\.glzr" -Target "$HOME\dotfiles\glzr\.glzr"
 
-   # AutoHotkey (adjust path as needed)
-   New-Item -ItemType SymbolicLink -Path "$HOME\Documents\AutoHotkey" -Target "$HOME\dotfiles\autohotkey\Documents\AutoHotkey"
+   # AutoHotkey (symlink to Startup folder for auto-launch)
+   New-Item -ItemType SymbolicLink -Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\hotkey.ahk" -Target "$HOME\dotfiles\autohotkey\hotkey.ahk"
    ```
 
 ## Git Configuration
