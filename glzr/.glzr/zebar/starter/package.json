@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && cp dist/index.html with-glazewm.html && rm -rf dist"
+    "build": "tsc && vite build && node -e \"fs=require('fs');fs.copyFileSync('dist/index.html','with-glazewm.html');fs.rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
     "react": "^18.3.1",
