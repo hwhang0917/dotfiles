@@ -1,0 +1,25 @@
+{
+  "InternalAdapter": "*Intel*",
+  "PublicAdapter": "*Realtek*",
+
+  "InternalInterface": "Wi-Fi",
+  "PublicInterface": "Wi-Fi 2",
+
+  "InternalSSID": "CorpNetwork",
+  "PublicSSID": "GuestNetwork",
+
+  "InternalGateway": "192.168.1.1",
+  "PublicGateway": "192.168.50.1",
+
+  "InternalSubnets": [
+    { "Prefix": "192.168.1.0/24" },
+    { "Prefix": "10.10.0.0/16" }
+  ],
+
+  "PublicMetric": 10,
+  "InternalMetric": 200,
+  "SubnetRouteMetric": 5,
+
+  "DisconnectWait": 2,
+  "ConnectWait": 5
+}
