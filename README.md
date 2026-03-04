@@ -54,7 +54,7 @@ The bootstrap script will:
 | Linux | hypr, sway, ghostty, kime |
 | WSL | _(common only)_ |
 | macOS | ghostty |
-| Windows | komorebi, glzr, autohotkey |
+| Windows | glzr, autohotkey |
 
 ## Manual Installation
 
@@ -91,23 +91,22 @@ Windows does not support GNU Stow. Use symbolic links manually instead.
    git submodule update --init --recursive
    ```
 
-2. Create symbolic links (run PowerShell as Administrator):
+2. Build the Zebar widget:
 
    ```powershell
-   # Komorebi
-   New-Item -ItemType SymbolicLink -Path "$HOME\.config\komorebi" -Target "$HOME\dotfiles\komorebi\.config\komorebi"
+   cd $HOME\dotfiles\glzr\.glzr\zebar\starter
+   npm install
+   npm run build
+   ```
 
-   # GlazeWM
+3. Create symbolic links (run PowerShell as Administrator):
+
+   ```powershell
+   # GlazeWM + Zebar
    New-Item -ItemType SymbolicLink -Path "$HOME\.glzr" -Target "$HOME\dotfiles\glzr\.glzr"
 
    # AutoHotkey (adjust path as needed)
    New-Item -ItemType SymbolicLink -Path "$HOME\Documents\AutoHotkey" -Target "$HOME\dotfiles\autohotkey\Documents\AutoHotkey"
-   ```
-
-   Or use `mklink` in Command Prompt (as Administrator):
-
-   ```cmd
-   mklink /D "%USERPROFILE%\.config\komorebi" "%USERPROFILE%\dotfiles\komorebi\.config\komorebi"
    ```
 
 ## Git Configuration
