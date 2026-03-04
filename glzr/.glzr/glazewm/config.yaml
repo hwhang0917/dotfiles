@@ -267,8 +267,7 @@ keybindings:
   # Terminal and Git Bash respectively.
   # - commands: ['shell-exec %ProgramFiles%/Alacritty/alacritty.exe']
   # - commands: ['shell-exec %ProgramFiles%/wezterm/wezterm-gui.exe']
-  #   bindings: ['alt+shift+enter']
-  - commands: ["shell-exec %ProgramFiles%/wezterm/wezterm-gui.exe"]
+  - commands: ["shell-exec wt.exe"]
     bindings: ["alt+shift+enter"]
 
   # Launch explorer.exe to open the file explorer.
