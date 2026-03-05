@@ -66,11 +66,14 @@ Log "Waiting for connections to establish..."
 Start-Sleep -Seconds $config.ConnectWait
 
 # Look up current interface indexes
-$intel = (Get-NetAdapter | Where-Object InterfaceDescription -like $config.InternalAdapter).ifIndex
-$realtek = (Get-NetAdapter | Where-Object InterfaceDescription -like $config.PublicAdapter).ifIndex
+$internalAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like $config.InternalAdapter -and $_.Status -eq "Up" } | Select-Object -First 1
+$publicAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like $config.PublicAdapter -and $_.Status -eq "Up" } | Select-Object -First 1
 
-if (-not $intel) { Log "ERROR: Internal adapter ($($config.InternalAdapter)) not found"; exit 1 }
-if (-not $realtek) { Log "ERROR: Public adapter ($($config.PublicAdapter)) not found"; exit 1 }
+if (-not $internalAdapter) { Log "ERROR: Internal adapter ($($config.InternalAdapter)) not found or not connected"; exit 1 }
+if (-not $publicAdapter) { Log "ERROR: Public adapter ($($config.PublicAdapter)) not found or not connected"; exit 1 }
+
+$intel = $internalAdapter.ifIndex
+$realtek = $publicAdapter.ifIndex
 
 Log "Detected Internal (IF $intel), Public (IF $realtek)"
 
