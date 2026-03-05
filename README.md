@@ -54,7 +54,7 @@ The bootstrap script will:
 | Linux | hypr, sway, ghostty, kime |
 | WSL | _(common only)_ |
 | macOS | ghostty |
-| Windows | glzr, autohotkey |
+| Windows | _(use `bootstrap.ps1`)_ |
 
 ## Manual Installation
 
@@ -81,50 +81,27 @@ The bootstrap script will:
 
 ### Windows
 
-Windows does not support GNU Stow. Use symbolic links manually instead.
+Windows does not support GNU Stow. Use `bootstrap.ps1` instead (requires Administrator):
 
-1. Clone the repository:
+```powershell
+# Run PowerShell as Administrator
+git clone https://github.com/hwhang0917/dotfiles.git $HOME\dotfiles
+cd $HOME\dotfiles
+.\bootstrap.ps1
+```
 
-   ```powershell
-   git clone https://github.com/hwhang0917/dotfiles.git $HOME\dotfiles
-   cd $HOME\dotfiles
-   git submodule update --init --recursive
-   ```
-
-2. Build the Zebar widget:
-
-   ```powershell
-   cd $HOME\dotfiles\glzr\.glzr\zebar\starter
-   npm install
-   npm run build
-   ```
-
-3. Create symbolic links (run PowerShell as Administrator):
-
-   ```powershell
-   # GlazeWM + Zebar
-   New-Item -ItemType SymbolicLink -Path "$HOME\.glzr" -Target "$HOME\dotfiles\glzr\.glzr"
-
-   # AutoHotkey (symlink to Startup folder for auto-launch)
-   New-Item -ItemType SymbolicLink -Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\hotkey.ahk" -Target "$HOME\dotfiles\autohotkey\hotkey.ahk"
-
-   # Neovim
-   New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\nvim" -Target "$HOME\dotfiles\nvim\.config\nvim"
-
-   # Git
-   New-Item -ItemType SymbolicLink -Path "$HOME\.gitconfig" -Target "$HOME\dotfiles\git\.gitconfig"
-   New-Item -ItemType SymbolicLink -Path "$HOME\.gitignore" -Target "$HOME\dotfiles\git\.gitignore"
-
-   # Windows Terminal
-   New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Target "$HOME\dotfiles\wt\settings.json"
-   ```
+The script will install tools via winget (Git, Neovim, AutoHotkey, GlazeWM, Zebar, fnm, fzf, Starship), install Node.js LTS via fnm, initialize submodules, build the Zebar widget, create symlinks, and set up git local config.
 
 ## Git Configuration
 
-After stowing git, set up your local credentials:
+After stowing git (or running `bootstrap.ps1`), set up your local credentials:
 
 ```bash
+# Linux / macOS / WSL
 ./setup/gitconfig_init.sh
+
+# Windows (PowerShell)
+.\setup\gitconfig_init.ps1
 ```
 
 Or manually copy the example file:

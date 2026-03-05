@@ -285,7 +285,7 @@ select_packages() {
             packages+=(ghostty)
             ;;
         windows)
-            packages+=(komorebi glzr autohotkey)
+            packages+=(glzr autohotkey)
             ;;
     esac
 
