@@ -16,5 +16,6 @@
         "url": "https://github.com/wakatime/claude-code-wakatime.git"
       }
     }
-  }
+  },
+  "effortLevel": "high"
 }
