@@ -92,6 +92,29 @@ cd $HOME\dotfiles
 
 The script will install tools via winget (Git, Neovim, AutoHotkey, GlazeWM, Zebar, fnm, fzf, Starship), install Node.js LTS via fnm, initialize submodules, build the Zebar widget, create symlinks, and set up git local config.
 
+#### Create-Symlink.ps1
+
+`windows/scripts/Create-Symlink.ps1` is a lightweight alternative to GNU Stow for Windows. It creates symbolic links and requires Administrator privileges.
+
+```powershell
+.\windows\scripts\Create-Symlink.ps1 <target> <symlink>
+```
+
+If `<symlink>` is a directory, the symlink is created inside it using the target's filename.
+
+```powershell
+# Create symlink at an explicit path
+.\windows\scripts\Create-Symlink.ps1 .\windows\scripts\Create-Symlink.ps1 C:\bin\Create-Symlink.ps1
+
+# Create symlink inside a directory (C:\bin\Create-Symlink.ps1)
+.\windows\scripts\Create-Symlink.ps1 .\windows\scripts\Create-Symlink.ps1 C:\bin\
+```
+
+- Errors early if not running as Administrator
+- Skips if an identical symlink already exists
+- Prompts before replacing a symlink that points to a different target
+- Creates parent directories as needed
+
 ## Git Configuration
 
 After stowing git (or running `bootstrap.ps1`), set up your local credentials:
