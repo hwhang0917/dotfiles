@@ -234,7 +234,7 @@ function zt() {
     tmux new-window -n "$window_name" -c "$result"
 }
 # WireGuard toggle helper with fzf
-function fwg() {
+function fvpn() {
     if ! command -v fzf > /dev/null 2>&1; then
         log "ERROR" "fzf is not installed. Please install fzf to use this function."
         return 1
@@ -252,6 +252,7 @@ function fwg() {
     local selected
     selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" -printf "%f\n" 2>/dev/null | \
         sed 's/\.conf$//' | \
+        grep -v '^wg-home$' | \
         while read -r iface; do
             if echo "$active_ifaces" | grep -qw "$iface"; then
                 echo "$iface [UP]"
