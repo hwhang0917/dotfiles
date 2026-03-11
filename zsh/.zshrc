@@ -143,9 +143,13 @@ alias ...="cd ../.."
 # OS-Specific aliases
 case "$OSTYPE" in
     linux*)
-        if command -v pacman >/dev/null 2>&1; then
+        if [[ -f /etc/arch-release ]]; then
             alias p="sudo pacman"
-            alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
+            if command -v paru >/dev/null 2>&1; then
+                alias p-clean='sudo paccache -r; sudo pacman -Sc; paru -Sc'
+            else
+                alias p-clean='sudo paccache -r; sudo pacman -Sc'
+            fi
         fi
         ;;
 esac
