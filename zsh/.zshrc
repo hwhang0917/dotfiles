@@ -81,9 +81,9 @@ else
 fi
 
 autoload -Uz compinit
-zmodload zsh/stat
+zmodload zsh/stat zsh/datetime
 local zcompdump="$HOME/.zcompdump"
-if [[ -f "$zcompdump" ]] && (( $(date +%s) - $(zstat +mtime "$zcompdump") < 86400 )); then
+if [[ -f "$zcompdump" ]] && (( EPOCHSECONDS - $(zstat +mtime "$zcompdump") < 86400 )); then
     compinit -C -d "$zcompdump"
 else
     compinit -d "$zcompdump"
@@ -314,21 +314,13 @@ path_prepend "$LOCAL_BIN"
 path_prepend "$LOCAL_SCRIPT"
 
 # Golang Binary
-if command -v go >/dev/null 2>&1; then
-    GOBIN="$(go env GOPATH)/bin"
-    path_prepend "$GOBIN"
-fi
+[[ -d "${GOPATH:-$HOME/go}/bin" ]] && path_prepend "${GOPATH:-$HOME/go}/bin"
 
 # Cargo Binary
-if command -v cargo >/dev/null 2>&1; then
-    CARGO_BIN="$HOME/.cargo/bin"
-    path_prepend "$CARGO_BIN"
-fi
+[[ -d "$HOME/.cargo/bin" ]] && path_prepend "$HOME/.cargo/bin"
 
 # govm (Go Version Manager)
-if command -v govm >/dev/null 2>&1; then
-    path_prepend "$HOME/.govm/shim"
-fi
+[[ -d "$HOME/.govm/shim" ]] && path_prepend "$HOME/.govm/shim"
 
 # fnm (Fast Node Manager)
 [[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm" && eval "$(fnm env)"
