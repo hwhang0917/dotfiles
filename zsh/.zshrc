@@ -156,8 +156,10 @@ esac
 
 # Editor aliases
 if command -v nvim >/dev/null 2>&1; then
-    alias vi="nvim"
     alias vim="nvim"
+fi
+if command -v vim >/dev/null 2>&1; then
+    alias vi="command vim"
 fi
 
 # Claude Code aliases
