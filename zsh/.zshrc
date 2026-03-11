@@ -137,15 +137,12 @@ fi
 
 # ============= Aliases =============
 # Common aliases
-alias l="ls -lah"
-alias ll="ls -lh"
-alias la="ls -lAh"
 alias ..="cd .."
 alias ...="cd ../.."
 
 # OS-Specific aliases
-case "$(uname -s)" in
-    Linux)
+case "$OSTYPE" in
+    linux*)
         if command -v pacman >/dev/null 2>&1; then
             alias p="sudo pacman"
             alias p-clean="sudo paccache -r && sudo pacman -Sc && sudo yay -Sc"
@@ -177,6 +174,7 @@ elif command -v exa >/dev/null 2>&1; then
 else
     alias ls="ls --color=auto"
 fi
+alias l="ls -lah"
 alias ll="ls -lh"
 alias la="ls -lAh"
 
@@ -262,12 +260,7 @@ function zt() {
         return 1
     fi
     local result
-    if [[ -z "$1" ]]; then
-        result=$(zoxide query --interactive)
-    else
-        result=$(zoxide query --interactive "$1")
-    fi
-    if [[ $? -ne 0 ]]; then
+    if ! result=$(zoxide query --interactive "$@"); then
         log "WARN" "zoxide query failed or was cancelled."
         return 1
     fi
@@ -327,17 +320,23 @@ path_prepend "$LOCAL_SCRIPT"
 
 # bun (JavaScript runtime)
 [[ -d "$HOME/.bun" ]] && path_prepend "$HOME/.bun/bin"
-if command -v bun >/dev/null 2>&1; then
-    source "$HOME/.bun/_bun"
-fi
+[[ -f "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
 
 # Opencode (CLI)
 [[ -d "$HOME/.opencode/bin" ]] && path_prepend "$HOME/.opencode/bin"
 
 # Starship
-command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)" || log "WARN" "starship not found." "https://starship.rs/"
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+else
+    log "WARN" "starship not found." "https://starship.rs/"
+fi
 # Zoxide
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" || log "WARN" "zoxide not found." "https://github.com/ajeetdsouza/zoxide"
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init zsh)"
+else
+    log "WARN" "zoxide not found." "https://github.com/ajeetdsouza/zoxide"
+fi
 
 # Ruby
 [[ -d "$HOME/.gem/ruby/bin" ]] && path_prepend "$HOME/.gem/ruby/bin"
