@@ -278,18 +278,30 @@ function ddg() {
     local query="$*"
     if [[ -z "$query" ]]; then
         if command -v gum >/dev/null 2>&1; then
-            query=$(gum input --placeholder "Search DuckDuckGo") || return 1
+            query=$(gum input --placeholder "Search Unduck") || return 1
         else
             log "WARN" "Usage: ddg <search terms>"
             return 1
         fi
     fi
-    if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "https://duckduckgo.com/?q=$query"
+    local url="https://unduck.link/?q=$query"
+    if [[ -n "$WSL_DISTRO_NAME" ]]; then
+        if wsl-zen --check 2>/dev/null; then
+            wsl-zen "$url"
+        elif wsl-chrome --check 2>/dev/null; then
+            wsl-chrome "$url"
+        elif wsl-edge --check 2>/dev/null; then
+            wsl-edge "$url"
+        else
+            log "ERROR" "No Windows browser found (Zen, Chrome, or Edge)."
+            return 1
+        fi
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$url"
     elif command -v open >/dev/null 2>&1; then
-        open "https://duckduckgo.com/?q=$query"
+        open "$url"
     elif [[ -n "$BROWSER" ]]; then
-        $BROWSER "https://duckduckgo.com/?q=$query"
+        $BROWSER "$url"
     else
         log "ERROR" "No suitable method found to open URLs."
         return 1
