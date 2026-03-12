@@ -59,6 +59,7 @@
         "defaults": 
         {
             "adjustIndistinguishableColors": "indexed",
+            "closeOnExit": "graceful",
             "colorScheme": "rose-pine",
             "cursorShape": "filledBox",
             "experimental.retroTerminalEffect": false,
