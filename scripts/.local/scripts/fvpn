@@ -34,16 +34,15 @@ if [[ -n "$active_ifaces" ]]; then
 
     if (( ${#filtered_active[@]} > 0 )); then
         active_list="${(j:, :)filtered_active}"
-        read -q "reply?${active_list} is currently up. Bring down first? [Y/n] " || true
-        echo
+        read "reply?${active_list} is currently up. Bring down? [Y/n] "
 
-        if [[ "$reply" != "n" ]]; then
+        if [[ "$reply" != "n" && "$reply" != "N" ]]; then
             for iface in "${filtered_active[@]}"; do
                 log "INFO" "Bringing down $iface..."
                 sudo wg-quick down "$iface"
             done
-            active_ifaces=$(sudo wg show interfaces 2>/dev/null)
         fi
+        exit 0
     fi
 fi
 
