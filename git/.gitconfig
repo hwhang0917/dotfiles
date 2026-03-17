@@ -37,6 +37,8 @@
     bl = branch -l
     br = branch -r
     ba = branch -la
+    next = "!git-next"
+    prev = "!git-prev"
 [commit]
     gpgsign = true
     verbose = true
