@@ -5,7 +5,6 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Install URLs (update these when upstream changes)
-ZPLUG_INSTALL_URL="https://raw.githubusercontent.com/zplug/installer/master/installer.zsh"
 STARSHIP_INSTALL_URL="https://starship.rs/install.sh"
 ZOXIDE_INSTALL_URL="https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
 FNM_INSTALL_URL="https://fnm.vercel.app/install"
@@ -91,15 +90,12 @@ pkg_name() {
 
 install_optional_deps() {
     local platform="$1"
-    local deps=(fzf zoxide eza bat gum starship fnm zplug)
+    local deps=(fzf zoxide eza bat gum starship fnm)
 
     log_step "Checking optional dependencies..."
     local missing=()
     for cmd in "${deps[@]}"; do
-        case "$cmd" in
-            zplug) [[ -d "$HOME/.zplug" ]] || missing+=("$cmd") ;;
-            *)     command -v "$cmd" &>/dev/null || missing+=("$cmd") ;;
-        esac
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
 
     if [[ ${#missing[@]} -eq 0 ]]; then
@@ -208,7 +204,6 @@ install_with_script() {
         starship) try_install starship download_and_exec "$STARSHIP_INSTALL_URL" sh -s -- -y ;;
         zoxide)   try_install zoxide download_and_exec "$ZOXIDE_INSTALL_URL" sh ;;
         fnm)      try_install fnm download_and_exec "$FNM_INSTALL_URL" bash -s -- --skip-shell ;;
-        zplug)    try_install zplug download_and_exec "$ZPLUG_INSTALL_URL" zsh ;;
         eza)
             if command -v cargo &>/dev/null; then
                 try_install eza cargo install eza

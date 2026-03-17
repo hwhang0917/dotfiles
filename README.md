@@ -38,7 +38,6 @@ The bootstrap script will:
    | [gum](https://github.com/charmbracelet/gum) | Shell scripting toolkit | pacman / brew / go install |
    | [starship](https://starship.rs/) | Prompt | pacman / brew / install script |
    | [fnm](https://github.com/Schniz/fnm) | Fast Node Manager | pacman / brew / install script |
-   | [zplug](https://github.com/zplug/zplug) | Zsh plugin manager | pacman / brew / install script |
 
 5. Prompt for stow package selection:
    - `Y` - Stow all suggested packages for your platform
@@ -153,14 +152,6 @@ If stow fails due to existing files:
 stow -D <package>  # Remove any partial stow
 mv ~/.config/<file> ~/.config/<file>.backup  # Backup existing file
 stow <package>  # Try again
-```
-
-### zplug not found
-
-Install zplug manually:
-
-```bash
-curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
 ```
 
 ### Submodule issues
