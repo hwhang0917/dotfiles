@@ -51,6 +51,11 @@ if (-not $Global:AliasesSet) {
         Set-Alias -Name vim -Value nvim -Scope Global
     }
 
+    # Set cat alias if bat is available
+    if (Get-Command bat -ErrorAction SilentlyContinue) {
+        Set-Alias -Name cat -Value bat -Scope Global
+    }
+
     $Global:AliasesSet = $true
 }
 
