@@ -2,6 +2,9 @@
 command_timeout = 5000
 scan_timeout = 30
 
+[aws]
+disabled = true
+
 [os]
 disabled = false
 style = "bold blue"
