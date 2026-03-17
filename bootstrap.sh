@@ -20,16 +20,59 @@ log_warn()  { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 log_error() { echo -e "${RED}[ERROR]${RESET} $1"; }
 log_step()  { echo -e "${BLUE}[STEP]${RESET} $1"; }
 
+HAS_GUM=false
+
 TMPDIR_BOOTSTRAP=""
 cleanup() { [[ -n "$TMPDIR_BOOTSTRAP" ]] && rm -rf "$TMPDIR_BOOTSTRAP"; }
 trap cleanup EXIT
 
+# ── Prompts (gum with read fallback) ──────────────────────────
+
+confirm() {
+    local prompt="$1"
+    if $HAS_GUM; then
+        gum confirm "$prompt"
+    else
+        read -rp "$prompt [Y/n]: " choice
+        choice="${choice:-y}"
+        [[ "$choice" =~ ^[Yy] ]]
+    fi
+}
+
+# Multi-select from a list. Pre-selected items passed via --selected.
+# Prints selected items, one per line.
+choose_many() {
+    local header="$1"
+    shift
+    local selected="$1"
+    shift
+    local items=("$@")
+
+    if $HAS_GUM; then
+        local args=(--no-limit --header "$header")
+        [[ -n "$selected" ]] && args+=(--selected "$selected")
+        printf '%s\n' "${items[@]}" | gum choose "${args[@]}"
+    else
+        echo "$header" >&2
+        echo "(space-separated, or 'all' for everything)" >&2
+        for item in "${items[@]}"; do
+            echo "  - $item" >&2
+        done
+        read -rp "> " input
+        if [[ "$input" == "all" ]]; then
+            printf '%s\n' "${items[@]}"
+        else
+            echo "$input" | tr ' ' '\n'
+        fi
+    fi
+}
+
+# ── Utilities ─────────────────────────────────────────────────
+
 check_dependencies() {
     local missing=()
     for cmd in git stow curl; do
-        if ! command -v "$cmd" &>/dev/null; then
-            missing+=("$cmd")
-        fi
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
 
     if [[ ${#missing[@]} -gt 0 ]]; then
@@ -70,13 +113,57 @@ try_install() {
     fi
 }
 
-# Maps command name -> package name per manager
+detect_platform() {
+    case "$(uname -s)" in
+        Linux*)
+            if grep -qi microsoft /proc/version 2>/dev/null; then
+                echo "wsl"
+            else
+                echo "linux"
+            fi
+            ;;
+        Darwin*)  echo "macos" ;;
+        MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
+        *)        echo "unknown" ;;
+    esac
+}
+
+# ── Gum bootstrap ────────────────────────────────────────────
+
+ensure_gum() {
+    if command -v gum &>/dev/null; then
+        HAS_GUM=true
+        return
+    fi
+
+    log_step "gum not found — installing for interactive prompts..."
+
+    local installed=false
+    if command -v pacman &>/dev/null; then
+        sudo pacman -S --needed --noconfirm gum &>/dev/null && installed=true
+    elif command -v brew &>/dev/null; then
+        brew install gum &>/dev/null && installed=true
+    elif command -v go &>/dev/null; then
+        go install github.com/charmbracelet/gum@latest &>/dev/null && installed=true
+    fi
+
+    if $installed && command -v gum &>/dev/null; then
+        HAS_GUM=true
+        log_info "gum installed"
+    else
+        log_warn "Could not install gum, falling back to basic prompts"
+    fi
+}
+
+# ── Package name mapping ─────────────────────────────────────
+
 pkg_name() {
     local manager="$1" cmd="$2"
     case "$manager:$cmd" in
         pacman:bat)      echo "bat" ;;
         pacman:eza)      echo "eza" ;;
         pacman:fzf)      echo "fzf" ;;
+        pacman:gum)      echo "gum" ;;
         pacman:zoxide)   echo "zoxide" ;;
         pacman:starship) echo "starship" ;;
         pacman:fnm)      echo "fnm" ;;
@@ -87,118 +174,40 @@ pkg_name() {
     esac
 }
 
-install_optional_deps() {
-    local platform="$1"
-    local deps=(fzf zoxide eza bat starship fnm)
+# ── Tool installation ─────────────────────────────────────────
 
-    log_step "Checking optional dependencies..."
-    local missing=()
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" &>/dev/null || missing+=("$cmd")
-    done
+install_tool() {
+    local tool="$1" platform="$2"
 
-    if [[ ${#missing[@]} -eq 0 ]]; then
-        log_info "All optional dependencies already installed"
-        return
-    fi
-
-    log_warn "Missing optional tools: ${missing[*]}"
-    read -rp "Install missing tools? [Y/n]: " choice
-    choice="${choice:-y}"
-    [[ ! "$choice" =~ ^[Yy] ]] && return
-
+    # Try package manager first
     case "$platform" in
         linux|wsl)
             if command -v pacman &>/dev/null; then
-                install_deps_pacman "${missing[@]}"
+                local pkg; pkg=$(pkg_name pacman "$tool")
+                if [[ -n "$pkg" ]]; then
+                    try_install "$tool" sudo pacman -S --needed --noconfirm "$pkg"
+                    return
+                fi
             elif command -v apt &>/dev/null; then
-                install_deps_apt "${missing[@]}"
-            else
-                log_warn "Unsupported package manager, install manually: ${missing[*]}"
+                local pkg; pkg=$(pkg_name apt "$tool")
+                if [[ -n "$pkg" ]]; then
+                    try_install "$tool" sudo apt install -y "$pkg"
+                    return
+                fi
             fi
             ;;
         macos)
             if command -v brew &>/dev/null; then
-                install_deps_brew "${missing[@]}"
-            else
-                log_warn "Homebrew not found, install manually: ${missing[*]}"
+                local pkg; pkg=$(pkg_name brew "$tool")
+                if [[ -n "$pkg" ]]; then
+                    try_install "$tool" brew install "$pkg"
+                    return
+                fi
             fi
             ;;
-        *)
-            log_warn "Unsupported platform for auto-install: ${missing[*]}"
-            ;;
     esac
-}
 
-install_deps_pacman() {
-    local tools=("$@")
-    local pacman_pkgs=()
-    local manual=()
-
-    for tool in "${tools[@]}"; do
-        local pkg
-        pkg=$(pkg_name pacman "$tool")
-        if [[ -n "$pkg" ]]; then
-            pacman_pkgs+=("$pkg")
-        else
-            manual+=("$tool")
-        fi
-    done
-
-    if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
-        sudo pacman -S --needed --noconfirm "${pacman_pkgs[@]}" || log_warn "Some pacman packages failed"
-    fi
-
-    for tool in "${manual[@]}"; do
-        install_with_script "$tool"
-    done
-}
-
-install_deps_apt() {
-    local tools=("$@")
-    local apt_pkgs=()
-    local manual=()
-
-    for tool in "${tools[@]}"; do
-        local pkg
-        pkg=$(pkg_name apt "$tool")
-        if [[ -n "$pkg" ]]; then
-            apt_pkgs+=("$pkg")
-        else
-            manual+=("$tool")
-        fi
-    done
-
-    if [[ ${#apt_pkgs[@]} -gt 0 ]]; then
-        sudo apt update && sudo apt install -y "${apt_pkgs[@]}" || log_warn "Some apt packages failed"
-    fi
-
-    for tool in "${manual[@]}"; do
-        install_with_script "$tool"
-    done
-}
-
-install_deps_brew() {
-    local tools=("$@")
-    local manual=()
-
-    for tool in "${tools[@]}"; do
-        local pkg
-        pkg=$(pkg_name brew "$tool")
-        if [[ -n "$pkg" ]]; then
-            try_install "$tool" brew install "$pkg"
-        else
-            manual+=("$tool")
-        fi
-    done
-
-    for tool in "${manual[@]}"; do
-        install_with_script "$tool"
-    done
-}
-
-install_with_script() {
-    local tool="$1"
+    # Fallback to install scripts
     case "$tool" in
         starship) try_install starship download_and_exec "$STARSHIP_INSTALL_URL" sh -s -- -y ;;
         zoxide)   try_install zoxide download_and_exec "$ZOXIDE_INSTALL_URL" sh ;;
@@ -216,26 +225,32 @@ install_with_script() {
     esac
 }
 
-detect_platform() {
-    case "$(uname -s)" in
-        Linux*)
-            if grep -qi microsoft /proc/version 2>/dev/null; then
-                echo "wsl"
-            else
-                echo "linux"
-            fi
-            ;;
-        Darwin*)
-            echo "macos"
-            ;;
-        MINGW*|MSYS*|CYGWIN*)
-            echo "windows"
-            ;;
-        *)
-            echo "unknown"
-            ;;
-    esac
+install_optional_deps() {
+    local platform="$1"
+    local all_deps=(fzf zoxide eza bat starship fnm)
+
+    log_step "Checking optional dependencies..."
+    local missing=()
+    for cmd in "${all_deps[@]}"; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        log_info "All optional dependencies already installed"
+        return
+    fi
+
+    local selected
+    selected=$(choose_many "Select tools to install:" "$(IFS=,; echo "${missing[*]}")" "${missing[@]}") || return 0
+
+    [[ -z "$selected" ]] && return
+
+    while IFS= read -r tool; do
+        [[ -n "$tool" ]] && install_tool "$tool" "$platform"
+    done <<< "$selected"
 }
+
+# ── Submodules ────────────────────────────────────────────────
 
 init_submodules() {
     log_step "Initializing git submodules..."
@@ -243,6 +258,8 @@ init_submodules() {
     git submodule update --init --recursive
     log_info "Submodules initialized"
 }
+
+# ── Stow ──────────────────────────────────────────────────────
 
 stow_package() {
     local package="$1"
@@ -254,69 +271,41 @@ stow_package() {
     fi
 }
 
-select_packages() {
-    local platform="$1"
-    local packages=()
-
-    local common_packages=(git zsh tmux nvim vim scripts tig yazi)
-    packages+=("${common_packages[@]}")
-
-    case "$platform" in
-        wsl)
-            packages+=()
-            ;;
-        linux)
-            packages+=(hypr sway ghostty kime)
-            ;;
-        macos)
-            packages+=(ghostty)
-            ;;
-        windows)
-            packages+=(glzr autohotkey)
-            ;;
-    esac
-
-    echo "${packages[@]}"
-}
-
 interactive_stow() {
     local platform="$1"
-    local suggested_packages
-    suggested_packages=$(select_packages "$platform")
 
-    echo ""
-    log_step "Platform detected: $platform"
-    echo "Suggested packages: $suggested_packages"
-    echo ""
+    # All available stow packages
+    local available=()
+    for dir in "$DOTFILES_DIR"/*/; do
+        local dir_name
+        dir_name=$(basename "$dir")
+        [[ "$dir_name" =~ ^(assets|src|bin|windows|\.claude)$ ]] && continue
+        available+=("$dir_name")
+    done
 
-    read -rp "Stow suggested packages? [Y/n/custom]: " choice
-    choice="${choice:-y}"
+    # Platform-suggested packages (pre-selected in gum)
+    local suggested=()
+    local common=(git zsh tmux nvim vim scripts tig yazi bat starship)
+    suggested+=("${common[@]}")
 
-    case "$choice" in
-        [Yy]*)
-            for pkg in $suggested_packages; do
-                stow_package "$pkg"
-            done
-            ;;
-        [Nn]*)
-            log_info "Skipping package installation"
-            return
-            ;;
-        *)
-            echo "Available packages:"
-            for dir in "$DOTFILES_DIR"/*/; do
-                dir_name=$(basename "$dir")
-                [[ "$dir_name" =~ ^(setup|packages)$ ]] && continue
-                echo "  - $dir_name"
-            done
-            echo ""
-            read -rp "Enter packages to stow (space-separated): " custom_packages
-            for pkg in $custom_packages; do
-                stow_package "$pkg"
-            done
-            ;;
+    case "$platform" in
+        linux)  suggested+=(hypr sway ghostty kime) ;;
+        macos)  suggested+=(ghostty) ;;
     esac
+
+    log_step "Platform detected: $platform"
+
+    local selected
+    selected=$(choose_many "Select packages to stow:" "$(IFS=,; echo "${suggested[*]}")" "${available[@]}") || return 0
+
+    [[ -z "$selected" ]] && return
+
+    while IFS= read -r pkg; do
+        [[ -n "$pkg" ]] && stow_package "$pkg"
+    done <<< "$selected"
 }
+
+# ── Git config ────────────────────────────────────────────────
 
 setup_git_config() {
     if [[ -f "$HOME/.gitconfig" ]] && [[ ! -f "$HOME/.gitconfig.local" ]]; then
@@ -325,6 +314,8 @@ setup_git_config() {
         log_info "  cp $DOTFILES_DIR/git/.gitconfig.local.example ~/.gitconfig.local"
     fi
 }
+
+# ── Main ──────────────────────────────────────────────────────
 
 main() {
     echo ""
@@ -338,6 +329,7 @@ main() {
     local platform
     platform=$(detect_platform)
 
+    ensure_gum
     init_submodules
     install_optional_deps "$platform"
     interactive_stow "$platform"

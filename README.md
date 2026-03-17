@@ -25,9 +25,10 @@ cd ~/dotfiles
 The bootstrap script will:
 
 1. Check for required dependencies (git, stow, curl)
-2. Initialize git submodules
-3. Detect your platform (linux, wsl, macos, windows)
-4. Check for optional tools and offer to install missing ones:
+2. Detect your platform (linux, wsl, macos, windows)
+3. Install [gum](https://github.com/charmbracelet/gum) for interactive prompts (falls back to basic `read` if unavailable)
+4. Initialize git submodules
+5. Interactively select optional tools to install:
 
    | Tool | Description | Install method |
    |------|-------------|----------------|
@@ -38,11 +39,8 @@ The bootstrap script will:
    | [starship](https://starship.rs/) | Prompt | pacman / brew / install script |
    | [fnm](https://github.com/Schniz/fnm) | Fast Node Manager | pacman / brew / install script |
 
-5. Prompt for stow package selection:
-   - `Y` - Stow all suggested packages for your platform
-   - `n` - Skip package installation
-   - `custom` - Choose specific packages to stow
-6. Remind to set up git local configuration if missing
+6. Interactively select stow packages (platform defaults pre-selected)
+7. Remind to set up git local configuration if missing
 
 ### Platform packages
 
