@@ -320,15 +320,9 @@ interactive_stow() {
 
 setup_git_config() {
     if [[ -f "$HOME/.gitconfig" ]] && [[ ! -f "$HOME/.gitconfig.local" ]]; then
-        log_step "Setting up git local config..."
-        read -rp "Run gitconfig_init.sh to create .gitconfig.local? [Y/n]: " choice
-        choice="${choice:-y}"
-        if [[ "$choice" =~ ^[Yy] ]]; then
-            "$DOTFILES_DIR/setup/gitconfig_init.sh"
-        else
-            log_info "Skipped. You can run ./setup/gitconfig_init.sh later"
-            log_info "Or copy git/.gitconfig.local.example to ~/.gitconfig.local"
-        fi
+        log_warn "~/.gitconfig.local not found"
+        log_info "Copy the example and fill in your details:"
+        log_info "  cp $DOTFILES_DIR/git/.gitconfig.local.example ~/.gitconfig.local"
     fi
 }
 

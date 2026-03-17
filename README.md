@@ -42,7 +42,7 @@ The bootstrap script will:
    - `Y` - Stow all suggested packages for your platform
    - `n` - Skip package installation
    - `custom` - Choose specific packages to stow
-6. Optionally set up git local configuration
+6. Remind to set up git local configuration if missing
 
 ### Platform packages
 
@@ -122,20 +122,30 @@ See [nvim/.config/nvim/README.md](nvim/.config/nvim/README.md) for setup, requir
 After stowing git (or running `bootstrap.ps1`), set up your local credentials:
 
 ```bash
-# Linux / macOS / WSL
-./setup/gitconfig_init.sh
-
-# Windows (PowerShell)
-.\setup\gitconfig_init.ps1
-```
-
-Or manually copy the example file:
-
-```bash
 cp ~/dotfiles/git/.gitconfig.local.example ~/.gitconfig.local
 ```
 
-Edit `~/.gitconfig.local` with your name, email, and signing key.
+Edit `~/.gitconfig.local` with your name, email, and signing key:
+
+```gitconfig
+[credential "https://github.com"]
+    helper =
+    helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+    helper =
+    helper = !/usr/bin/gh auth git-credential
+[user]
+    name = Your Name
+    email = your.email@example.com
+    signingKey = ~/.ssh/id_ed25519.pub
+```
+
+Optionally add `includeIf` for work-specific configs:
+
+```gitconfig
+[includeIf "gitdir:~/work/"]
+    path = ~/work/.gitconfig
+```
 
 ## Uninstallation
 

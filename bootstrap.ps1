@@ -190,12 +190,10 @@ function New-Symlinks {
 
 function Set-GitLocalConfig {
     $gitconfigLocal = Join-Path $HOME ".gitconfig.local"
-    if (Test-Path (Join-Path $HOME ".gitconfig")) {
-        if (-not (Test-Path $gitconfigLocal)) {
-            Write-Step "Setting up git local config..."
-            $initScript = Join-Path $DotfilesDir "setup\gitconfig_init.ps1"
-            & $initScript
-        }
+    if ((Test-Path (Join-Path $HOME ".gitconfig")) -and (-not (Test-Path $gitconfigLocal))) {
+        Write-Warn "~/.gitconfig.local not found"
+        Write-Info "Copy the example and fill in your details:"
+        Write-Info "  cp $DotfilesDir\git\.gitconfig.local.example ~\.gitconfig.local"
     }
 }
 
