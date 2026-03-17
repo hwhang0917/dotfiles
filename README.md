@@ -113,6 +113,10 @@ If `<symlink>` is a directory, the symlink is created inside it using the target
 - Prompts before replacing a symlink that points to a different target
 - Creates parent directories as needed
 
+## Neovim
+
+See [nvim/.config/nvim/README.md](nvim/.config/nvim/README.md) for setup, requirements, and local configuration.
+
 ## Git Configuration
 
 After stowing git (or running `bootstrap.ps1`), set up your local credentials:
