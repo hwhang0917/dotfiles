@@ -55,3 +55,4 @@ if (-not $Global:AliasesSet) {
 }
 
 $env:PATH += ";$env:LOCALAPPDATA\Microsoft\WindowsApps"
+$env:PATH += ";$HOME\Documents\scripts"
