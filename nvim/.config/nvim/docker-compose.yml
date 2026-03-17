@@ -1,0 +1,11 @@
+services:
+  nvim:
+    build: .
+    image: nvim-hwhang0917
+    stdin_open: true
+    tty: true
+    volumes:
+      - nvim-data:/root/.local/share/nvim
+
+volumes:
+  nvim-data:

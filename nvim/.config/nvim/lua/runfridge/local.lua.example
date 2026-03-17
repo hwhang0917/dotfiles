@@ -1,0 +1,17 @@
+-- Machine-specific overrides (copy to local.lua)
+-- This file is gitignored and will not be committed.
+-- Defaults are defined in lua/runfridge/utils/init.lua
+--
+-- Available themes:
+--   rose-pine, rose-pine-moon, rose-pine-dawn
+--   catppuccin-mocha, catppuccin-frappe, catppuccin-macchiato, catppuccin-latte
+--   tokyonight-moon, tokyonight-storm, tokyonight-night, tokyonight-day
+--   yugen
+return {
+    theme = "rose-pine",
+    transparent = true,
+    llm_enabled = true,
+    llm_model = "qwen2.5-coder:1.5b-base",
+    llm_backend = "ollama",
+    llm_url = "http://localhost:11434",
+}

@@ -1,0 +1,5 @@
+plugin
+!*after/plugin
+.luarc.json
+.claude
+lua/runfridge/local.lua
