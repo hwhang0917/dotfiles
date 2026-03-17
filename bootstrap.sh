@@ -43,28 +43,47 @@ confirm() {
     fi
 }
 
-# Multi-select from a list. Pre-selected items passed via --selected.
+# Multi-select from a list. Pre-selected items passed via --selected (comma-separated).
 # Prints selected items, one per line.
 choose_many() {
     local header="$1"
     shift
-    local selected="$1"
+    local selected_csv="$1"
     shift
     local items=("$@")
 
     if $HAS_GUM; then
         local args=(--no-limit --header "$header")
-        [[ -n "$selected" ]] && args+=(--selected "$selected")
+        [[ -n "$selected_csv" ]] && args+=(--selected "$selected_csv")
         printf '%s\n' "${items[@]}" | gum choose "${args[@]}"
     else
-        echo "$header" >&2
-        echo "(space-separated, or 'all' for everything)" >&2
-        for item in "${items[@]}"; do
-            echo "  - $item" >&2
+        # Parse pre-selected items
+        local -A selected_map=()
+        IFS=',' read -ra sel_arr <<< "$selected_csv"
+        for s in "${sel_arr[@]}"; do
+            selected_map["$s"]=1
         done
+
+        echo "$header" >&2
+        for item in "${items[@]}"; do
+            if [[ -n "${selected_map[$item]:-}" ]]; then
+                echo -e "  ${GREEN}[x]${RESET} $item" >&2
+            else
+                echo -e "  [ ] $item" >&2
+            fi
+        done
+        echo "" >&2
+        echo "Enter to accept [x] defaults, 'all' for everything, or type names:" >&2
         read -rp "> " input
-        if [[ "$input" == "all" ]]; then
+        if [[ -z "$input" ]]; then
+            # Accept defaults
+            for item in "${items[@]}"; do
+                [[ -n "${selected_map[$item]:-}" ]] && echo "$item"
+            done
+        elif [[ "$input" == "all" ]]; then
             printf '%s\n' "${items[@]}"
+        elif [[ "$input" == "none" ]]; then
+            return 0
         else
             echo "$input" | tr ' ' '\n'
         fi
