@@ -11,8 +11,11 @@
 ## Prerequisites
 
 - [git](https://git-scm.com/)
+- [zsh](https://www.zsh.org/)
 - [stow](https://www.gnu.org/software/stow/)
 - [curl](https://curl.se/)
+
+> The bootstrap script will attempt to install missing prerequisites automatically.
 
 ## Quick Start
 

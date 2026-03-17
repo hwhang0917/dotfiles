@@ -25,6 +25,8 @@ SUDO=""
 [[ $EUID -ne 0 ]] && SUDO="sudo"
 
 HAS_GUM=false
+IS_TTY=false
+[[ -t 0 ]] && IS_TTY=true
 
 TMPDIR_BOOTSTRAP=""
 cleanup() { [[ -n "$TMPDIR_BOOTSTRAP" ]] && rm -rf "$TMPDIR_BOOTSTRAP"; }
@@ -106,7 +108,7 @@ install_pkg() {
 }
 
 check_dependencies() {
-    local required=(git stow curl)
+    local required=(git stow curl zsh)
     local missing=()
     for cmd in "${required[@]}"; do
         command -v "$cmd" &>/dev/null || missing+=("$cmd")
@@ -179,6 +181,11 @@ detect_platform() {
 # ── Gum bootstrap ────────────────────────────────────────────
 
 ensure_gum() {
+    if ! $IS_TTY; then
+        log_warn "No TTY detected, falling back to basic prompts"
+        return
+    fi
+
     if command -v gum &>/dev/null; then
         HAS_GUM=true
         return
