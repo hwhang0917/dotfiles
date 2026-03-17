@@ -98,6 +98,12 @@ install_pkg() {
     local pkg="$1"
     if command -v pacman &>/dev/null; then
         $SUDO pacman -S --needed --noconfirm "$pkg"
+    elif command -v dnf &>/dev/null; then
+        $SUDO dnf install -y --setopt=install_weak_deps=False "$pkg" || {
+            # stow/gum may need EPEL
+            $SUDO dnf install -y epel-release &>/dev/null
+            $SUDO dnf install -y --setopt=install_weak_deps=False "$pkg"
+        }
     elif command -v apt &>/dev/null; then
         $SUDO apt update -qq && $SUDO apt install -y "$pkg"
     elif command -v brew &>/dev/null; then
@@ -220,6 +226,10 @@ pkg_name() {
         pacman:fnm)      echo "fnm" ;;
         apt:bat)         echo "bat" ;;
         apt:fzf)         echo "fzf" ;;
+        dnf:bat)         echo "bat" ;;
+        dnf:fzf)         echo "fzf" ;;
+        dnf:eza)         echo "eza" ;;
+        dnf:zoxide)      echo "zoxide" ;;
         brew:*)          echo "$cmd" ;;
         *)               echo "" ;;
     esac
@@ -237,6 +247,12 @@ install_tool() {
                 local pkg; pkg=$(pkg_name pacman "$tool")
                 if [[ -n "$pkg" ]]; then
                     try_install "$tool" $SUDO pacman -S --needed --noconfirm "$pkg"
+                    return
+                fi
+            elif command -v dnf &>/dev/null; then
+                local pkg; pkg=$(pkg_name dnf "$tool")
+                if [[ -n "$pkg" ]]; then
+                    try_install "$tool" $SUDO dnf install -y "$pkg"
                     return
                 fi
             elif command -v apt &>/dev/null; then
