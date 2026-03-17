@@ -8,6 +8,16 @@
 
 ![GitHub License](https://img.shields.io/github/license/hwhang0917/dotfiles)
 
+## Supported Platforms
+
+| Family | Distros | Package manager |
+|--------|---------|-----------------|
+| **Arch** | Arch, Manjaro, EndeavourOS | `pacman` |
+| **RHEL** | Rocky, Alma, Fedora, RHEL, CentOS Stream | `dnf` + EPEL |
+| **Debian** | Debian, Ubuntu, Mint, Pop!_OS | `apt` |
+| **macOS** | macOS | `brew` |
+| **Windows** | Windows 10/11 | `winget` (via `bootstrap.ps1`) |
+
 ## Prerequisites
 
 - [git](https://git-scm.com/)
