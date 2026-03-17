@@ -8,10 +8,81 @@ if (-not $isAdmin) {
 }
 
 $DotfilesDir = $PSScriptRoot
+$CreateSymlink = Join-Path $DotfilesDir "windows\scripts\Create-Symlink.ps1"
 
 function Write-Info  { param([string]$Message) Write-Host "[INFO] $Message" -ForegroundColor Green }
 function Write-Warn  { param([string]$Message) Write-Host "[WARN] $Message" -ForegroundColor Yellow }
 function Write-Step  { param([string]$Message) Write-Host "[STEP] $Message" -ForegroundColor Blue }
+
+$script:HasGum = $false
+
+# ── Prompts (gum with Read-Host fallback) ─────────────────────
+
+function Invoke-Confirm {
+    param([string]$Prompt)
+    if ($script:HasGum) {
+        gum confirm $Prompt
+        return $LASTEXITCODE -eq 0
+    } else {
+        $choice = Read-Host "$Prompt [Y/n]"
+        return (-not $choice -or $choice -match '^[Yy]')
+    }
+}
+
+function Invoke-ChooseMany {
+    param(
+        [string]$Header,
+        [string[]]$Items,
+        [string[]]$Selected = @()
+    )
+
+    if ($script:HasGum) {
+        $args_ = @("--no-limit", "--header", $Header)
+        if ($Selected.Count -gt 0) {
+            $args_ += @("--selected", ($Selected -join ","))
+        }
+        $result = $Items | gum choose @args_
+        if ($LASTEXITCODE -ne 0) { return @() }
+        return @($result)
+    } else {
+        Write-Host $Header
+        Write-Host "(space-separated, or 'all' for everything)"
+        foreach ($item in $Items) {
+            $marker = if ($Selected -contains $item) { "*" } else { " " }
+            Write-Host "  [$marker] $item"
+        }
+        $input = Read-Host ">"
+        if ($input -eq "all") { return $Items }
+        if (-not $input) { return @() }
+        return @($input -split '\s+')
+    }
+}
+
+# ── Gum bootstrap ────────────────────────────────────────────
+
+function Install-Gum {
+    if (Get-Command gum -ErrorAction SilentlyContinue) {
+        $script:HasGum = $true
+        return
+    }
+
+    Write-Step "gum not found - installing for interactive prompts..."
+
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install --id charmbracelet.gum --accept-source-agreements --accept-package-agreements 2>$null
+        # Refresh PATH
+        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+    }
+
+    if (Get-Command gum -ErrorAction SilentlyContinue) {
+        $script:HasGum = $true
+        Write-Info "gum installed"
+    } else {
+        Write-Warn "Could not install gum, falling back to basic prompts"
+    }
+}
+
+# ── Tool installation ─────────────────────────────────────────
 
 function Install-WingetPackage {
     param(
@@ -32,44 +103,8 @@ function Install-WingetPackage {
     }
 }
 
-function New-SymlinkSafe {
-    param(
-        [string]$Path,
-        [string]$Target,
-        [switch]$Directory
-    )
-
-    if (Test-Path $Path) {
-        $item = Get-Item $Path -Force
-        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-            $existing = $item.Target
-            if ($existing -eq $Target) {
-                Write-Info "Symlink already correct: $Path"
-                return
-            }
-            Write-Warn "Symlink exists but points to '$existing', removing and re-linking: $Path"
-            $item.Delete()
-        } else {
-            Write-Warn "Path already exists and is not a symlink, skipping: $Path"
-            return
-        }
-    }
-
-    $parentDir = Split-Path -Parent $Path
-    if (-not (Test-Path $parentDir)) {
-        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
-    }
-
-    if ($Directory) {
-        New-Item -ItemType SymbolicLink -Path $Path -Target $Target | Out-Null
-    } else {
-        New-Item -ItemType SymbolicLink -Path $Path -Target $Target | Out-Null
-    }
-    Write-Info "Created symlink: $Path -> $Target"
-}
-
 function Install-Tools {
-    Write-Step "Installing essential tools via winget..."
+    Write-Step "Checking tools..."
 
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Warn "winget not found. Install 'App Installer' from the Microsoft Store and re-run this script."
@@ -83,23 +118,43 @@ function Install-Tools {
         @{ Id = "AutoHotkey.AutoHotkey"; Name = "AutoHotkey" },
         @{ Id = "glzr-io.glazewm";      Name = "GlazeWM" },
         @{ Id = "glzr-io.zebar";        Name = "Zebar" },
-        @{ Id = "Schniz.fnm";            Name = "fnm" },
+        @{ Id = "Schniz.fnm";           Name = "fnm" },
         @{ Id = "junegunn.fzf";         Name = "fzf" },
         @{ Id = "Starship.Starship";    Name = "Starship" },
         @{ Id = "eza-community.eza";    Name = "eza" },
         @{ Id = "ajeetdsouza.zoxide";   Name = "zoxide" }
     )
 
+    # Find missing tools
+    $missing = @()
     foreach ($pkg in $packages) {
-        Install-WingetPackage -PackageId $pkg.Id -Name $pkg.Name
+        $installed = winget list --id $pkg.Id 2>$null | Select-String $pkg.Id
+        if (-not $installed) {
+            $missing += $pkg
+        }
+    }
+
+    if ($missing.Count -eq 0) {
+        Write-Info "All tools already installed"
+        return
+    }
+
+    $missingNames = $missing | ForEach-Object { $_.Name }
+    $selected = Invoke-ChooseMany -Header "Select tools to install:" -Items $missingNames -Selected $missingNames
+
+    foreach ($name in $selected) {
+        $pkg = $missing | Where-Object { $_.Name -eq $name }
+        if ($pkg) {
+            Install-WingetPackage -PackageId $pkg.Id -Name $pkg.Name
+        }
     }
 
     # Refresh PATH so newly installed tools are available in this session
-    $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-    $env:Path = "$machinePath;$userPath"
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
     Write-Info "Refreshed PATH"
 }
+
+# ── Submodules ────────────────────────────────────────────────
 
 function Initialize-Submodules {
     Write-Step "Initializing git submodules..."
@@ -109,7 +164,14 @@ function Initialize-Submodules {
     Write-Info "Submodules initialized"
 }
 
+# ── Node.js ───────────────────────────────────────────────────
+
 function Install-NodeLTS {
+    if (-not (Get-Command fnm -ErrorAction SilentlyContinue)) {
+        Write-Warn "fnm not found, skipping Node.js install"
+        return
+    }
+
     Write-Step "Installing Node.js LTS via fnm..."
     try {
         fnm install --lts
@@ -121,8 +183,9 @@ function Install-NodeLTS {
     }
 }
 
+# ── Zebar ─────────────────────────────────────────────────────
+
 function Build-ZebarWidget {
-    Write-Step "Building Zebar widget..."
     $zebarDir = Join-Path $DotfilesDir "glzr\.glzr\zebar\starter"
 
     if (-not (Test-Path $zebarDir)) {
@@ -130,6 +193,7 @@ function Build-ZebarWidget {
         return
     }
 
+    Write-Step "Building Zebar widget..."
     Push-Location $zebarDir
     try {
         npm install
@@ -142,51 +206,35 @@ function Build-ZebarWidget {
     }
 }
 
+# ── Symlinks ──────────────────────────────────────────────────
+
 function New-Symlinks {
     Write-Step "Creating symlinks..."
 
-    # GlazeWM + Zebar
-    New-SymlinkSafe `
-        -Path (Join-Path $HOME ".glzr") `
-        -Target (Join-Path $DotfilesDir "glzr\.glzr") `
-        -Directory
+    $symlinks = @(
+        @{ Name = "GlazeWM + Zebar"; Target = "glzr\.glzr";                                              Path = (Join-Path $HOME ".glzr") },
+        @{ Name = "AutoHotkey";      Target = "autohotkey\hotkey.ahk";                                    Path = (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Startup\hotkey.ahk") },
+        @{ Name = "Neovim";          Target = "nvim\.config\nvim";                                        Path = (Join-Path $env:LOCALAPPDATA "nvim") },
+        @{ Name = "Git config";      Target = "git\.gitconfig";                                           Path = (Join-Path $HOME ".gitconfig") },
+        @{ Name = "Git ignore";      Target = "git\.gitignore";                                           Path = (Join-Path $HOME ".gitignore") },
+        @{ Name = "Windows Terminal"; Target = "wt\settings.json";                                        Path = (Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json") },
+        @{ Name = "Scripts";         Target = "windows\scripts";                                          Path = (Join-Path $HOME "Documents\scripts") },
+        @{ Name = "PowerShell";      Target = "windows\profile\Microsoft.PowerShell_profile.ps1";         Path = (Join-Path $HOME "Documents\PowerShell\Microsoft.PowerShell_profile.ps1") }
+    )
 
-    # AutoHotkey -> Startup folder
-    New-SymlinkSafe `
-        -Path (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Startup\hotkey.ahk") `
-        -Target (Join-Path $DotfilesDir "autohotkey\hotkey.ahk")
+    $names = $symlinks | ForEach-Object { $_.Name }
+    $selected = Invoke-ChooseMany -Header "Select symlinks to create:" -Items $names -Selected $names
 
-    # Neovim
-    New-SymlinkSafe `
-        -Path (Join-Path $env:LOCALAPPDATA "nvim") `
-        -Target (Join-Path $DotfilesDir "nvim\.config\nvim") `
-        -Directory
-
-    # Git
-    New-SymlinkSafe `
-        -Path (Join-Path $HOME ".gitconfig") `
-        -Target (Join-Path $DotfilesDir "git\.gitconfig")
-
-    New-SymlinkSafe `
-        -Path (Join-Path $HOME ".gitignore") `
-        -Target (Join-Path $DotfilesDir "git\.gitignore")
-
-    # Windows Terminal
-    New-SymlinkSafe `
-        -Path (Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json") `
-        -Target (Join-Path $DotfilesDir "wt\settings.json")
-
-    # Scripts
-    New-SymlinkSafe `
-        -Path (Join-Path $HOME "Documents\scripts") `
-        -Target (Join-Path $DotfilesDir "windows\scripts") `
-        -Directory
-
-    # PowerShell profile
-    New-SymlinkSafe `
-        -Path (Join-Path $HOME "Documents\PowerShell\Microsoft.PowerShell_profile.ps1") `
-        -Target (Join-Path $DotfilesDir "windows\profile\Microsoft.PowerShell_profile.ps1")
+    foreach ($name in $selected) {
+        $link = $symlinks | Where-Object { $_.Name -eq $name }
+        if ($link) {
+            $target = Join-Path $DotfilesDir $link.Target
+            & $CreateSymlink $target $link.Path
+        }
+    }
 }
+
+# ── Git config ────────────────────────────────────────────────
 
 function Set-GitLocalConfig {
     $gitconfigLocal = Join-Path $HOME ".gitconfig.local"
@@ -197,6 +245,8 @@ function Set-GitLocalConfig {
     }
 }
 
+# ── Main ──────────────────────────────────────────────────────
+
 function Main {
     Write-Host ""
     Write-Host ([char]0x2554 + ([string][char]0x2550) * 39 + [char]0x2557)
@@ -204,6 +254,7 @@ function Main {
     Write-Host ([char]0x255A + ([string][char]0x2550) * 39 + [char]0x255D)
     Write-Host ""
 
+    Install-Gum
     Install-Tools
     Install-NodeLTS
     Initialize-Submodules
