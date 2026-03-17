@@ -35,7 +35,6 @@ The bootstrap script will:
    | [zoxide](https://github.com/ajeetdsouza/zoxide) | Smarter cd | pacman / brew / install script |
    | [eza](https://github.com/eza-community/eza) | Modern ls | pacman / brew / cargo |
    | [bat](https://github.com/sharkdp/bat) | Modern cat | pacman / apt / brew |
-   | [gum](https://github.com/charmbracelet/gum) | Shell scripting toolkit | pacman / brew / go install |
    | [starship](https://starship.rs/) | Prompt | pacman / brew / install script |
    | [fnm](https://github.com/Schniz/fnm) | Fast Node Manager | pacman / brew / install script |
 

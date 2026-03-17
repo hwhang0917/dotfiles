@@ -77,7 +77,6 @@ pkg_name() {
         pacman:bat)      echo "bat" ;;
         pacman:eza)      echo "eza" ;;
         pacman:fzf)      echo "fzf" ;;
-        pacman:gum)      echo "gum" ;;
         pacman:zoxide)   echo "zoxide" ;;
         pacman:starship) echo "starship" ;;
         pacman:fnm)      echo "fnm" ;;
@@ -90,7 +89,7 @@ pkg_name() {
 
 install_optional_deps() {
     local platform="$1"
-    local deps=(fzf zoxide eza bat gum starship fnm)
+    local deps=(fzf zoxide eza bat starship fnm)
 
     log_step "Checking optional dependencies..."
     local missing=()
@@ -209,13 +208,6 @@ install_with_script() {
                 try_install eza cargo install eza
             else
                 log_warn "eza requires cargo, skipping"
-            fi
-            ;;
-        gum)
-            if command -v go &>/dev/null; then
-                try_install gum go install github.com/charmbracelet/gum@latest
-            else
-                log_warn "gum requires go, skipping"
             fi
             ;;
         *)

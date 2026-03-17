@@ -4,12 +4,8 @@
 
 query="$*"
 if [[ -z "$query" ]]; then
-    if command -v gum >/dev/null 2>&1; then
-        query=$(gum input --placeholder "Search Unduck") || exit 1
-    else
-        echo "Usage: ddg <search terms>" >&2
-        exit 1
-    fi
+    read -r "query?Search Unduck: "
+    [[ -z "$query" ]] && exit 1
 fi
 
 url="https://unduck.link/?q=$query"
