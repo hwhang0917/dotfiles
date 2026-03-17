@@ -20,6 +20,10 @@ log_warn()  { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 log_error() { echo -e "${RED}[ERROR]${RESET} $1"; }
 log_step()  { echo -e "${BLUE}[STEP]${RESET} $1"; }
 
+# Use sudo only when not root
+SUDO=""
+[[ $EUID -ne 0 ]] && SUDO="sudo"
+
 HAS_GUM=false
 
 TMPDIR_BOOTSTRAP=""
@@ -69,16 +73,41 @@ choose_many() {
 
 # ── Utilities ─────────────────────────────────────────────────
 
+install_pkg() {
+    local pkg="$1"
+    if command -v pacman &>/dev/null; then
+        $SUDO pacman -S --needed --noconfirm "$pkg"
+    elif command -v apt &>/dev/null; then
+        $SUDO apt update -qq && $SUDO apt install -y "$pkg"
+    elif command -v brew &>/dev/null; then
+        brew install "$pkg"
+    else
+        return 1
+    fi
+}
+
 check_dependencies() {
+    local required=(git stow curl)
     local missing=()
-    for cmd in git stow curl; do
+    for cmd in "${required[@]}"; do
         command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
 
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        log_error "Missing required dependencies: ${missing[*]}"
-        exit 1
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        return
     fi
+
+    log_warn "Missing required tools: ${missing[*]}"
+    log_info "Attempting to install..."
+
+    for cmd in "${missing[@]}"; do
+        if install_pkg "$cmd"; then
+            log_info "$cmd installed"
+        else
+            log_error "Failed to install $cmd — install it manually and re-run"
+            exit 1
+        fi
+    done
 }
 
 download_and_exec() {
@@ -138,21 +167,17 @@ ensure_gum() {
 
     log_step "gum not found — installing for interactive prompts..."
 
-    local installed=false
-    if command -v pacman &>/dev/null; then
-        sudo pacman -S --needed --noconfirm gum &>/dev/null && installed=true
-    elif command -v brew &>/dev/null; then
-        brew install gum &>/dev/null && installed=true
-    elif command -v go &>/dev/null; then
-        go install github.com/charmbracelet/gum@latest &>/dev/null && installed=true
+    if install_pkg gum &>/dev/null || {
+        command -v go &>/dev/null && go install github.com/charmbracelet/gum@latest &>/dev/null
+    }; then
+        if command -v gum &>/dev/null; then
+            HAS_GUM=true
+            log_info "gum installed"
+            return
+        fi
     fi
 
-    if $installed && command -v gum &>/dev/null; then
-        HAS_GUM=true
-        log_info "gum installed"
-    else
-        log_warn "Could not install gum, falling back to basic prompts"
-    fi
+    log_warn "Could not install gum, falling back to basic prompts"
 }
 
 # ── Package name mapping ─────────────────────────────────────
@@ -185,13 +210,13 @@ install_tool() {
             if command -v pacman &>/dev/null; then
                 local pkg; pkg=$(pkg_name pacman "$tool")
                 if [[ -n "$pkg" ]]; then
-                    try_install "$tool" sudo pacman -S --needed --noconfirm "$pkg"
+                    try_install "$tool" $SUDO pacman -S --needed --noconfirm "$pkg"
                     return
                 fi
             elif command -v apt &>/dev/null; then
                 local pkg; pkg=$(pkg_name apt "$tool")
                 if [[ -n "$pkg" ]]; then
-                    try_install "$tool" sudo apt install -y "$pkg"
+                    try_install "$tool" $SUDO apt install -y "$pkg"
                     return
                 fi
             fi
@@ -274,12 +299,27 @@ stow_package() {
 interactive_stow() {
     local platform="$1"
 
-    # All available stow packages
+    # Packages excluded per platform (not relevant or managed differently)
+    local -a windows_only=(autohotkey glzr wt JetBrains windows)
+    local -a linux_only=(hypr sway kime)
+    local -a skip=(assets src bin .claude)
+
+    case "$platform" in
+        linux)  skip+=("${windows_only[@]}") ;;
+        wsl)    skip+=("${windows_only[@]}" "${linux_only[@]}") ;;
+        macos)  skip+=("${windows_only[@]}" "${linux_only[@]}" chromium) ;;
+    esac
+
+    # Build available list filtered by platform
     local available=()
     for dir in "$DOTFILES_DIR"/*/; do
         local dir_name
         dir_name=$(basename "$dir")
-        [[ "$dir_name" =~ ^(assets|src|bin|windows|\.claude)$ ]] && continue
+        local dominated=false
+        for s in "${skip[@]}"; do
+            [[ "$dir_name" == "$s" ]] && dominated=true && break
+        done
+        $dominated && continue
         available+=("$dir_name")
     done
 
