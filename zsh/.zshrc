@@ -33,52 +33,7 @@ function log() {
 # ===================================
 
 # ============== Init ===============
-ZSH_PLUGIN_DIR="$HOME/.zsh"
-mkdir -p "$ZSH_PLUGIN_DIR"
-
-if ! command -v git >/dev/null 2>&1; then
-    log "ERROR" "git is not installed. Zsh plugins will not be available."
-elif ! command -v fd >/dev/null 2>&1; then
-    log "ERROR" "fd is not installed. Zsh plugins will not be available." "https://github.com/sharkdp/fd"
-else
-    function zsh_plugin_load() {
-        local repo="$1"
-        local source_path="$2"
-        local plugin_name="${repo##*/}"
-        local plugin_dir="$ZSH_PLUGIN_DIR/$plugin_name"
-
-        if [[ ! -d "$plugin_dir" ]]; then
-            log "INFO" "Installing $repo..."
-            git clone --depth 1 "https://github.com/$repo.git" "$plugin_dir" 2>/dev/null || {
-                log "ERROR" "Failed to clone $repo"
-                return 1
-            }
-        fi
-
-        local init_file
-        if [[ -n "$source_path" ]]; then
-            init_file="$plugin_dir/$source_path"
-        else
-            init_file=$(fd -t f -e zsh -d 1 . "$plugin_dir" | head -1)
-        fi
-
-        if [[ -z "$init_file" || ! -f "$init_file" ]]; then
-            log "WARN" "No sourceable .zsh file found in $plugin_dir"
-            return 1
-        fi
-
-        source "$init_file"
-    }
-
-    function zsh_plugin_update() {
-        local plugin_dir
-        for plugin_dir in "$ZSH_PLUGIN_DIR"/*/; do
-            [[ -d "$plugin_dir/.git" ]] || continue
-            log "INFO" "Updating $(basename "$plugin_dir")..."
-            git -C "$plugin_dir" pull --ff-only 2>/dev/null || log "WARN" "Failed to update $(basename "$plugin_dir")"
-        done
-    }
-fi
+ZSH_PLUGIN_DIR="$HOME/.zsh-plugins"
 
 autoload -Uz compinit
 zmodload zsh/stat zsh/datetime
@@ -128,11 +83,10 @@ export PODMAN_COMPOSE_WARNING_LOGS=false
 # ===================================
 
 # ============= Plugins =============
-if (( $+functions[zsh_plugin_load] )); then
-    zsh_plugin_load "ohmyzsh/ohmyzsh" "plugins/git/git.plugin.zsh"
-    zsh_plugin_load "zsh-users/zsh-autosuggestions"
-    zsh_plugin_load "zsh-users/zsh-syntax-highlighting"  # loaded last, same as defer:2
-fi
+# Managed as git submodules in zsh/.zsh-plugins/
+source "$ZSH_PLUGIN_DIR/ohmyzsh/plugins/git/git.plugin.zsh"
+source "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
+source "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"  # loaded last
 # ===================================
 
 # ============= Aliases =============
