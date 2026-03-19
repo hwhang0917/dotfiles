@@ -1,0 +1,152 @@
+#!/usr/bin/zsh
+
+# Redmine issue browser via Atom RSS feeds
+
+CONFIG="$HOME/.config/redmine.json"
+
+# --- colors ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# --- dependency check ---
+missing=()
+for cmd in jq fzf xmllint curl; do
+    command -v "$cmd" > /dev/null 2>&1 || missing+=("$cmd")
+done
+if (( ${#missing[@]} > 0 )); then
+    printf "${RED}${BOLD}ERROR${RESET} Missing dependencies: ${YELLOW}%s${RESET}\n" "${(j:, :)missing}" >&2
+    exit 1
+fi
+
+# --- config check ---
+if [[ ! -f "$CONFIG" ]]; then
+    printf "${RED}${BOLD}ERROR${RESET} Config not found at ${CYAN}%s${RESET}\n\n" "$CONFIG" >&2
+    printf "${BOLD}Create the file with the following structure:${RESET}\n" >&2
+    printf "${DIM}────────────────────────────────────────${RESET}\n" >&2
+    jq -nC '{
+  links: [
+    { key: "My Tickets", value: "https://redmine.local/issues.atom?..." }
+  ]
+}' >&2
+    printf "${DIM}────────────────────────────────────────${RESET}\n" >&2
+    exit 1
+fi
+
+# --- select feed ---
+link_count=$(jq '.links | length' "$CONFIG")
+if [[ "$link_count" -eq 0 ]]; then
+    printf "${RED}${BOLD}ERROR${RESET} No links found in ${CYAN}%s${RESET}\n" "$CONFIG" >&2
+    exit 1
+fi
+
+if [[ "$link_count" -eq 1 ]]; then
+    selected=$(jq -r '.links[0].key' "$CONFIG")
+else
+    printf "\n${BOLD}Redmine Feeds${RESET}\n"
+    printf "${DIM}────────────────────────────────────────${RESET}\n"
+    for i in $(seq 0 $((link_count - 1))); do
+        printf "  ${CYAN}%d${RESET}  %s\n" "$((i + 1))" "$(jq -r --argjson i "$i" '.links[$i].key' "$CONFIG")"
+    done
+    printf "${DIM}────────────────────────────────────────${RESET}\n"
+    printf "${BOLD}Select [1-%d]:${RESET} " "$link_count"
+    read -r pick
+    [[ -z "$pick" ]] && exit 0
+    if [[ ! "$pick" =~ ^[0-9]+$ ]] || (( pick < 1 || pick > link_count )); then
+        printf "${RED}${BOLD}ERROR${RESET} Invalid selection\n" >&2
+        exit 1
+    fi
+    selected=$(jq -r --argjson i "$((pick - 1))" '.links[$i].key' "$CONFIG")
+fi
+
+url=$(jq -r --arg key "$selected" '.links[] | select(.key == $key) | .value' "$CONFIG")
+if [[ -z "$url" ]]; then
+    printf "${RED}${BOLD}ERROR${RESET} No URL found for '${YELLOW}%s${RESET}'\n" "$selected" >&2
+    exit 1
+fi
+
+# --- fetch and parse feed ---
+printf "${DIM}Fetching %s...${RESET}" "$selected"
+xml_file=$(mktemp)
+preview_dir=$(mktemp -d)
+trap "rm -rf $xml_file $preview_dir" EXIT
+
+curl -sSLk "$url" > "$xml_file" 2>/dev/null
+printf "\r\033[K"
+if [[ ! -s "$xml_file" ]]; then
+    printf "${RED}${BOLD}ERROR${RESET} Failed to fetch feed\n" >&2
+    exit 1
+fi
+
+titles=()
+urls=()
+
+count=$(xmllint --xpath 'count(//*[local-name()="entry"])' "$xml_file" 2>/dev/null)
+if [[ -z "$count" || "$count" -eq 0 ]]; then
+    printf "${RED}${BOLD}ERROR${RESET} No issues found or failed to parse feed\n" >&2
+    exit 1
+fi
+
+for i in $(seq 1 "$count"); do
+    title=$(xmllint --xpath 'string((//*[local-name()="entry"])['"$i"']/*[local-name()="title"])' "$xml_file" 2>/dev/null)
+    href=$(xmllint --xpath 'string((//*[local-name()="entry"])['"$i"']/*[local-name()="link"]/@href)' "$xml_file" 2>/dev/null)
+    author=$(xmllint --xpath 'string((//*[local-name()="entry"])['"$i"']/*[local-name()="author"]/*[local-name()="name"])' "$xml_file" 2>/dev/null)
+    updated=$(xmllint --xpath 'string((//*[local-name()="entry"])['"$i"']/*[local-name()="updated"])' "$xml_file" 2>/dev/null)
+    content=$(xmllint --xpath 'string((//*[local-name()="entry"])['"$i"']/*[local-name()="content"])' "$xml_file" 2>/dev/null | sed 's/<[^>]*>//g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g; s/&quot;/"/g' | sed '/^[[:space:]]*$/d')
+
+    titles+=("$title")
+    urls+=("$href")
+
+    cat > "$preview_dir/$i" <<PREVIEW
+$(printf '\033[1m%s\033[0m' "$title")
+
+$(printf '\033[0;36m  Author\033[0m   %s' "$author")
+$(printf '\033[0;36m  Updated\033[0m  %s' "$updated")
+$(printf '\033[0;34m  URL\033[0m      %s' "$href")
+
+$(printf '\033[2m──────────────────────────────────\033[0m')
+${content:-No description}
+PREVIEW
+done
+
+# --- select issue ---
+choice=$(printf '%s\n' "${titles[@]}" | fzf \
+    --height=80% \
+    --layout=reverse \
+    --border \
+    --prompt="$selected > " \
+    --preview="cat $preview_dir/\$(({n}+1))" \
+    --preview-window=right:60%:wrap \
+    --ansi)
+[[ -z "$choice" ]] && exit 0
+
+for i in {1..${#titles[@]}}; do
+    if [[ "${titles[$i]}" == "$choice" ]]; then
+        issue_url="${urls[$i]}"
+        break
+    fi
+done
+
+if [[ -n "$issue_url" ]]; then
+    printf "\n${GREEN}${BOLD}→${RESET} ${BLUE}%s${RESET}\n" "$issue_url"
+
+    if [[ -n "$WSL_DISTRO_NAME" ]]; then
+        if wsl-zen --check 2>/dev/null; then
+            wsl-zen "$issue_url"
+        elif wsl-chrome --check 2>/dev/null; then
+            wsl-chrome "$issue_url"
+        elif wsl-edge --check 2>/dev/null; then
+            wsl-edge "$issue_url"
+        fi
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$issue_url"
+    elif command -v open >/dev/null 2>&1; then
+        open "$issue_url"
+    fi
+fi
