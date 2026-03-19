@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env bash
 
 # Redmine issue browser via Atom RSS feeds
 
@@ -20,8 +20,8 @@ missing=()
 for cmd in jq fzf xmllint curl; do
     command -v "$cmd" > /dev/null 2>&1 || missing+=("$cmd")
 done
-if (( ${#missing[@]} > 0 )); then
-    printf "${RED}${BOLD}ERROR${RESET} Missing dependencies: ${YELLOW}%s${RESET}\n" "${(j:, :)missing}" >&2
+if [[ ${#missing[@]} -gt 0 ]]; then
+    IFS=', ' ; printf "${RED}${BOLD}ERROR${RESET} Missing dependencies: ${YELLOW}%s${RESET}\n" "${missing[*]}" >&2 ; unset IFS
     exit 1
 fi
 
@@ -75,7 +75,7 @@ fi
 printf "${DIM}Fetching %s...${RESET}" "$selected"
 xml_file=$(mktemp)
 preview_dir=$(mktemp -d)
-trap "rm -rf $xml_file $preview_dir" EXIT
+trap 'rm -rf "$xml_file" "$preview_dir"' EXIT
 
 curl -sSLk "$url" > "$xml_file" 2>/dev/null
 printf "\r\033[K"
@@ -126,7 +126,8 @@ choice=$(printf '%s\n' "${titles[@]}" | fzf \
     --ansi)
 [[ -z "$choice" ]] && exit 0
 
-for i in {1..${#titles[@]}}; do
+issue_url=""
+for i in $(seq 0 $((${#titles[@]} - 1))); do
     if [[ "${titles[$i]}" == "$choice" ]]; then
         issue_url="${urls[$i]}"
         break
