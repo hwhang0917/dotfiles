@@ -22,7 +22,6 @@ Add("runfridge.plugins.interface.indent-blankline")
 Add("runfridge.plugins.interface.noice")
 -- Code Syntax & LSP
 Add("runfridge.plugins.lsp.conform")
-Add("runfridge.plugins.lsp.llm")
 Add("runfridge.plugins.lsp.lsp")
 Add("runfridge.plugins.lsp.treesitter")
 Add("runfridge.plugins.lsp.vim-go")
