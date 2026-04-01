@@ -15,15 +15,15 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.keymap.set(normal_mode, "<C-[>", function()
-	if vim.fn.executable("ibus") == 1 then
-		print("Using Ibus, switching to English")
-		vim.fn.system("ibus engine xkb:us::eng")
-	else
-		-- TODO: Add support for other input methods
-	end
+    if vim.fn.executable("ibus") == 1 then
+        print("Using Ibus, switching to English")
+        vim.fn.system("ibus engine xkb:us::eng")
+    else
+        -- TODO: Add support for other input methods
+    end
 
-	-- Press <Esc>
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, true, true), "n", true)
+    -- Press <Esc>
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, true, true), "n", true)
 end, opts)
 
 -- Just for sanity
@@ -75,15 +75,15 @@ keymap(normal_mode, "<C-w>_", ":split<CR>", opts)
 
 -- Toggle line wrapping
 keymap_fn(normal_mode, "<leader>lw", function()
-	vim.wo.wrap = not vim.wo.wrap
+    vim.wo.wrap = not vim.wo.wrap
 end, opts)
 
 -- Move around error/warnings
 keymap_fn(normal_mode, "[g", function()
-	vim.diagnostic.jump({ count = -1, float = true })
+    vim.diagnostic.jump({ count = -1, float = true })
 end, opts)
 keymap_fn(normal_mode, "]g", function()
-	vim.diagnostic.jump({ count = 1, float = true })
+    vim.diagnostic.jump({ count = 1, float = true })
 end, opts)
 
 -- Disable <C-o>
@@ -91,14 +91,44 @@ keymap(normal_mode, "<C-o>", "<nop>", opts)
 
 -- Conform (format)
 vim.api.nvim_create_user_command("Format", function(args)
-	local range = nil
-	if args.count ~= -1 then
-		local end_line = vim.api.nvim_buf_get_lines(0, args.line2 - 1, args.line2, true)[1]
-		range = {
-			start = { args.line1, 0 },
+    local range = nil
+    if args.count ~= -1 then
+        local end_line = vim.api.nvim_buf_get_lines(0, args.line2 - 1, args.line2, true)[1]
+        range = {
+            start = { args.line1, 0 },
 
-			["end"] = { args.line2, end_line:len() },
-		}
-	end
-	require("conform").format({ async = true, lsp_format = "fallback", range = range })
+            ["end"] = { args.line2, end_line:len() },
+        }
+    end
+    require("conform").format({ async = true, lsp_format = "fallback", range = range })
 end, { range = true })
+
+-- Filter only the visually selected text (works great in visual block mode too)
+-- Usage: Select text with Ctrl-V (block), v, or V → press <leader>! → type command (e.g. xxd) → Enter
+vim.keymap.set('x', '<leader>!', function()
+    local cmd = vim.fn.input('Filter through command: ', '', 'shellcmd')
+    if cmd == '' then
+        return
+    end
+
+    -- Yank the exact selected text into register z (preserves block mode correctly)
+    vim.cmd('normal! "zy')
+
+    local selected_text = vim.fn.getreg('z')
+    if selected_text == '' then
+        vim.notify('No text selected', vim.log.levels.WARN)
+        return
+    end
+
+    -- Run the external command on the selected text only
+    local output = vim.fn.system(cmd, selected_text)
+
+    if vim.v.shell_error ~= 0 then
+        vim.notify('Command failed:\n' .. output, vim.log.levels.ERROR)
+        return
+    end
+
+    -- Replace the selection with the command output
+    vim.fn.setreg('z', output)
+    vim.cmd('normal! gv"zp')
+end, { desc = 'Filter visual selection (block/char/line) through external command' })
