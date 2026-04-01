@@ -44,6 +44,11 @@ else
     compinit -d "$zcompdump"
 fi
 bindkey -e
+
+# Enable Edit command via EDITOR
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
 # ===================================
 
 # ============ Security =============
