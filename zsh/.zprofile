@@ -13,3 +13,6 @@ if [[ -z "$TMUX" ]]; then
         fi
     fi
 fi
+
+# Source local profile
+[[ -f "${HOME}/.zprofile.local" ]] && source "${HOME}/.zprofile.local"

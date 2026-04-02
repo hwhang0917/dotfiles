@@ -4,3 +4,4 @@
 
 # Machine-specific config
 windows/scripts/Set-Routes.config.json
+zsh/.zprofile.local
