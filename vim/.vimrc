@@ -9,6 +9,11 @@ set sessionoptions-=options
 set undodir=~/.vim_undodir
 set belloff=all
 
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set softtabstop=4
+
 let mapleader="\<Space>"
 let g:mapleader="\<Space>"
 
