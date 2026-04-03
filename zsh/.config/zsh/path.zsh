@@ -20,7 +20,7 @@ path_prepend "$LOCAL_SCRIPT"
 [[ -d "$HOME/.govm/shim" ]] && path_prepend "$HOME/.govm/shim"
 
 # fnm (Fast Node Manager)
-[[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm" && eval "$(fnm env)"
+[[ -d "$LOCAL_SHARE/fnm" ]] && path_prepend "$LOCAL_SHARE/fnm"
 
 # bun (JavaScript runtime)
 [[ -d "$HOME/.bun" ]] && path_prepend "$HOME/.bun/bin"
