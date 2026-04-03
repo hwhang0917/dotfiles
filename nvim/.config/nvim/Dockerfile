@@ -1,6 +1,8 @@
-FROM alpine:latest
+FROM archlinux:latest
 
-RUN apk add --no-cache neovim git gcc musl-dev unzip curl ripgrep nodejs npm
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm neovim git gcc unzip curl ripgrep nodejs npm && \
+    pacman -Scc --noconfirm
 
 COPY . /root/.config/nvim
 
