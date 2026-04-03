@@ -31,9 +31,7 @@ return {
             "rust_analyzer", "jsonls", "html", "dockerls", "vue_ls",
         }
 
-        require("mason-lspconfig").setup({
-            ensure_installed = servers,
-        })
+        require("mason-lspconfig").setup()
 
         -- Vue language server path (static path per Mason v2 docs)
         local vue_language_server_path = vim.fn.stdpath("data")
