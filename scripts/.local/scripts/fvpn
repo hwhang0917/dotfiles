@@ -1,43 +1,48 @@
-#!/usr/bin/zsh
+#!/bin/sh
 
 # WireGuard toggle helper with fzf
 
-# --- helpers ---
 log() {
-    local level="$1"
+    level="$1"
     shift
     printf "[%s] %s\n" "$level" "$*"
 }
 
-# --- checks ---
-if ! command -v fzf > /dev/null 2>&1; then
-    log "ERROR" "fzf is not installed. Please install fzf to use this function."
-    exit 1
-fi
+for dep in fzf wg wg-quick; do
+    if ! command -v "$dep" > /dev/null 2>&1; then
+        log "ERROR" "$dep is not installed."
+        exit 1
+    fi
+done
 
 conf_dir="/etc/wireguard"
-if [[ ! -d "$conf_dir" ]]; then
+if [ ! -d "$conf_dir" ]; then
     log "ERROR" "No WireGuard config directory found at $conf_dir"
     exit 1
 fi
 
-search_term="$1"
+search_term="${1:-}"
 active_ifaces=$(sudo wg show interfaces 2>/dev/null)
 
-# --- if any VPN is active, offer to bring it down first ---
-if [[ -n "$active_ifaces" ]]; then
-    filtered_active=()
-    for iface in ${=active_ifaces}; do
-        [[ "$iface" == "wg-home" ]] && continue
-        filtered_active+=("$iface")
+# if any VPN is active, offer to bring it down first
+if [ -n "$active_ifaces" ]; then
+    filtered_active=""
+    for iface in $active_ifaces; do
+        [ "$iface" = "wg-home" ] && continue
+        if [ -n "$filtered_active" ]; then
+            filtered_active="$filtered_active $iface"
+        else
+            filtered_active="$iface"
+        fi
     done
 
-    if (( ${#filtered_active[@]} > 0 )); then
-        active_list="${(j:, :)filtered_active}"
-        read "reply?${active_list} is currently up. Bring down? [Y/n] "
+    if [ -n "$filtered_active" ]; then
+        active_list=$(echo "$filtered_active" | tr ' ' ',' | sed 's/,/, /g')
+        printf "%s is currently up. Bring down? [Y/n] " "$active_list"
+        read -r reply
 
-        if [[ "$reply" != "n" && "$reply" != "N" ]]; then
-            for iface in "${filtered_active[@]}"; do
+        if [ "$reply" != "n" ] && [ "$reply" != "N" ]; then
+            for iface in $filtered_active; do
                 log "INFO" "Bringing down $iface..."
                 sudo wg-quick down "$iface"
             done
@@ -46,9 +51,9 @@ if [[ -n "$active_ifaces" ]]; then
     fi
 fi
 
-# --- pick an interface ---
-selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" -printf "%f\n" 2>/dev/null | \
-    sed 's/\.conf$//' | \
+# pick an interface
+selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" 2>/dev/null | \
+    sed 's|.*/||; s/\.conf$//' | \
     grep -v '^wg-home$' | \
     while read -r iface; do
         if echo "$active_ifaces" | grep -qw "$iface"; then
@@ -64,11 +69,11 @@ selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" -printf "%f\n" 2>/de
     --prompt="WireGuard > " \
     --query="$search_term")
 
-if [[ -n "$selected" ]]; then
+if [ -n "$selected" ]; then
     iface=$(echo "$selected" | awk '{print $1}')
     state=$(echo "$selected" | awk '{print $2}')
 
-    if [[ "$state" == "[UP]" ]]; then
+    if [ "$state" = "[UP]" ]; then
         log "INFO" "Bringing down $iface..."
         sudo wg-quick down "$iface"
     else

@@ -1,12 +1,14 @@
-#!/usr/bin/zsh
+#!/bin/sh
 
 # Zoxide + Tmux: open a zoxide result in a new tmux window
 
-if ! command -v zoxide >/dev/null 2>&1; then
-    echo "[ERROR] zoxide is not installed." >&2
-    exit 1
-fi
-if [[ -z "$TMUX" ]]; then
+for dep in zoxide tmux fzf; do
+    if ! command -v "$dep" >/dev/null 2>&1; then
+        echo "[ERROR] $dep is not installed." >&2
+        exit 1
+    fi
+done
+if [ -z "$TMUX" ]; then
     echo "[ERROR] Not inside a tmux session." >&2
     exit 1
 fi

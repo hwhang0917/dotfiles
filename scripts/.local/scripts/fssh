@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/bin/sh
 
 # SSH connection helper with fzf
 
@@ -6,13 +6,13 @@ if ! command -v fzf > /dev/null 2>&1; then
     echo "[ERROR] fzf is not installed." >&2
     exit 1
 fi
-if [[ ! -f $HOME/.ssh/config ]]; then
+if [ ! -f "$HOME/.ssh/config" ]; then
     echo "[ERROR] No SSH config file found at ~/.ssh/config" >&2
     exit 1
 fi
 
 search_term=""
-[[ $# -gt 0 ]] && search_term="$1"
+[ $# -gt 0 ] && search_term="$1"
 
 host=$(grep "^Host " ~/.ssh/config | grep -v "\*" | cut -d" " -f2- | fzf \
     --height=40% \
@@ -22,7 +22,7 @@ host=$(grep "^Host " ~/.ssh/config | grep -v "\*" | cut -d" " -f2- | fzf \
     --query="$search_term" \
     --preview="grep -A 2 'Host {}' ~/.ssh/config")
 
-if [[ -n $host ]]; then
+if [ -n "$host" ]; then
     echo "[INFO] Connecting to $host..." >&2
     ssh "$host"
 fi

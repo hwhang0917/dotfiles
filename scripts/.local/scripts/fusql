@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/bin/sh
 
 # USQL connection helper with fzf
 
@@ -12,7 +12,7 @@ if ! command -v usql > /dev/null 2>&1; then
 fi
 
 config_file="$HOME/.config/usql/config.yaml"
-if [[ ! -f $config_file ]]; then
+if [ ! -f "$config_file" ]; then
     echo "[ERROR] No usql config file found at $config_file" >&2
     exit 1
 fi
@@ -28,7 +28,7 @@ db=$(grep -E '^\s+[a-z_][a-z0-9_]*:\s' "$config_file" | \
     --prompt="USQL > " \
     --query="$search_term")
 
-if [[ -n $db ]]; then
+if [ -n "$db" ]; then
     echo "[INFO] Connecting to $db..." >&2
     usql "$db"
 fi

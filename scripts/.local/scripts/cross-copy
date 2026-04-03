@@ -1,15 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-# clipboard-copy.sh
-# Cross-platform clipboard utility that automatically detects the appropriate
-# clipboard command based on the operating system and display server environment.
-#
-# Usage: echo "text to copy" | clipboard-copy.sh
-#        clipboard-copy.sh "direct text argument"
+# Cross-platform clipboard copy utility
+# Usage: echo "text to copy" | cross-copy
+#        cross-copy "direct text argument"
 
-set -euo pipefail  # Enable strict error handling
+set -eu
 
-# Function to display usage information
 show_usage() {
     echo "Usage: $0 [text]"
     echo "       echo 'text' | $0"
@@ -22,48 +18,37 @@ show_usage() {
     exit 1
 }
 
-# Function to detect the appropriate clipboard command
 detect_clipboard_command() {
-    # Windows detection - check for MSYS or Cygwin environments
-    if [[ "${OSTYPE:-}" == "msys" || "${OSTYPE:-}" == "cygwin" ]]; then
-        echo "clip"
-        return 0
-    fi
-
-    # macOS detection - Darwin kernel family
-    if [[ "${OSTYPE:-}" == darwin* ]]; then
-        echo "pbcopy"
-        return 0
-    fi
-
-    # Linux detection - distinguish between Wayland and X11
-    if [[ "${OSTYPE:-}" == linux* || "${OSTYPE:-}" == gnu* ]]; then
-        # Check for Wayland session first
-        if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
-            echo "wl-copy"
+    os="${OSTYPE:-$(uname -s)}"
+    case "$os" in
+        msys|cygwin)
+            echo "clip"
             return 0
-        # Fall back to X11 if no Wayland detected
-        elif [[ -n "${DISPLAY:-}" ]]; then
-            echo "xclip -selection clipboard"
+            ;;
+        darwin*|Darwin*)
+            echo "pbcopy"
             return 0
-        else
-            # No display server detected - this might be a headless system
-            echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
-            return 1
-        fi
-    fi
+            ;;
+        linux*|gnu*|Linux*)
+            if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+                echo "wl-copy"
+                return 0
+            elif [ -n "${DISPLAY:-}" ]; then
+                echo "xclip -selection clipboard"
+                return 0
+            else
+                echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
+                return 1
+            fi
+            ;;
+    esac
 
-    # If we reach here, we couldn't detect the platform
-    echo "ERROR: Unsupported platform: ${OSTYPE:-unknown}" >&2
+    echo "ERROR: Unsupported platform: ${os}" >&2
     return 1
 }
 
-# Function to verify that the detected command is actually available
 verify_clipboard_command() {
-    local cmd="$1"
-    local base_cmd
-
-    # Extract the base command name (before any arguments)
+    cmd="$1"
     base_cmd=$(echo "$cmd" | awk '{print $1}')
 
     if ! command -v "$base_cmd" >/dev/null 2>&1; then
@@ -77,45 +62,25 @@ verify_clipboard_command() {
     return 0
 }
 
-# Main execution logic
 main() {
-    local clipboard_cmd
-    local input_text
-
-    # Handle help flag
-    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
         show_usage
     fi
 
-    # Detect the appropriate clipboard command for this platform
-    if ! clipboard_cmd=$(detect_clipboard_command); then
-        exit 1
-    fi
+    clipboard_cmd=$(detect_clipboard_command) || exit 1
+    verify_clipboard_command "$clipboard_cmd" || exit 1
 
-    # Verify that the detected command is actually available
-    if ! verify_clipboard_command "$clipboard_cmd"; then
-        exit 1
-    fi
-
-    # Determine input source - either from arguments or stdin
-    if [[ $# -gt 0 ]]; then
-        # Text provided as command line argument
+    if [ $# -gt 0 ]; then
         input_text="$*"
     else
-        # Read from stdin (pipe input)
-        if [[ -t 0 ]]; then
-            # stdin is a terminal (no pipe), show usage
+        if [ -t 0 ]; then
             show_usage
         fi
         input_text=$(cat)
     fi
 
-    # Copy the text to clipboard using the detected command
-    echo -n "$input_text" | eval "$clipboard_cmd"
-
-    # Provide feedback to user (optional - can be removed if you prefer silent operation)
+    printf '%s' "$input_text" | eval "$clipboard_cmd"
     echo "Copied to clipboard using: $clipboard_cmd" >&2
 }
 
-# Execute main function with all script arguments
 main "$@"
