@@ -10,8 +10,4 @@
 return {
     theme = "rose-pine",
     transparent = true,
-    llm_enabled = true,
-    llm_model = "qwen2.5-coder:1.5b-base",
-    llm_backend = "ollama",
-    llm_url = "http://localhost:11434",
 }
