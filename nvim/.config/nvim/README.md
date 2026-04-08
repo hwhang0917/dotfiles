@@ -14,7 +14,7 @@
 
 ## Requirement
 
-- [Neovim ^0.11.1](https://neovim.io/)
+- [Neovim ^0.12.0](https://neovim.io/)
 - [Git ^2.49.0](https://git-scm.com/)
 - [Node.js ^22.16.0](https://nodejs.org/en/)
 
