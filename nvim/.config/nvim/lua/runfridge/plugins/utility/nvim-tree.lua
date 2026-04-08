@@ -12,7 +12,7 @@ return {
 				number = true,
 				relativenumber = true,
 				cursorline = true,
-				width = {},
+				width = 30,
 				side = "right",
 			},
 			renderer = {

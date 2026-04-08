@@ -52,6 +52,11 @@ return {
                 },
             },
             filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+            on_attach = function(client)
+                if vim.bo.filetype == "vue" then
+                    client.server_capabilities.semanticTokensProvider.full = false
+                end
+            end,
         })
 
         vim.lsp.config("lua_ls", {
