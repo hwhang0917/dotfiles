@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# Wake-on-LAN helper with fzf
+
+if ! command -v fzf > /dev/null 2>&1; then
+    echo "[ERROR] fzf is not installed." >&2
+    exit 1
+fi
+if ! command -v jq > /dev/null 2>&1; then
+    echo "[ERROR] jq is not installed." >&2
+    exit 1
+fi
+if ! command -v wakeonlan > /dev/null 2>&1; then
+    echo "[ERROR] wakeonlan is not installed." >&2
+    exit 1
+fi
+
+config_file="$HOME/.config/fwol.json"
+if [ ! -f "$config_file" ]; then
+    echo "[ERROR] No fwol config file found at $config_file" >&2
+    exit 1
+fi
+
+broadcast=$(jq -r '.broadcast // "192.168.219.255"' "$config_file")
+search_term="$1"
+
+selection=$(jq -r '.hosts[] | "\(.name)\t\(.mac)"' "$config_file" | \
+    fzf \
+    --height=40% \
+    --layout=reverse \
+    --border \
+    --prompt="WoL > " \
+    --with-nth=1 \
+    --delimiter='\t' \
+    --query="$search_term")
+
+if [ -n "$selection" ]; then
+    name=$(printf '%s' "$selection" | cut -f1)
+    mac=$(printf '%s' "$selection" | cut -f2)
+    echo "[INFO] Waking up $name ($mac) via $broadcast..." >&2
+    wakeonlan -i "$broadcast" "$mac"
+fi
