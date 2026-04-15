@@ -17,13 +17,18 @@ local parsers = {
     "vue",
 }
 
+local is_musl = vim.fn.executable("ldd") == 1
+    and vim.fn.system("ldd --version 2>&1"):lower():match("musl") ~= nil
+
 return {
     "nvim-treesitter/nvim-treesitter",
     event = "FileType",
-    build = ":TSUpdate",
+    build = not is_musl and ":TSUpdate" or false,
     config = function()
         require("nvim-treesitter").setup()
-        require("nvim-treesitter").install(parsers, { skip = { installed = true } })
+        if not is_musl then
+            require("nvim-treesitter").install(parsers, { skip = { installed = true } })
+        end
 
         vim.api.nvim_create_autocmd("FileType", {
             callback = function()
