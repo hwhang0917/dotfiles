@@ -28,7 +28,7 @@ active_ifaces=$(sudo wg show interfaces 2>/dev/null)
 if [ -n "$active_ifaces" ]; then
     filtered_active=""
     for iface in $active_ifaces; do
-        [ "$iface" = "wg-home" ] && continue
+        [ "$iface" = "wg0" ] && continue
         if [ -n "$filtered_active" ]; then
             filtered_active="$filtered_active $iface"
         else
@@ -54,7 +54,7 @@ fi
 # pick an interface
 selected=$(sudo find "$conf_dir" -maxdepth 1 -name "*.conf" 2>/dev/null | \
     sed 's|.*/||; s/\.conf$//' | \
-    grep -v '^wg-home$' | \
+    grep -v '^wg0$' | \
     while read -r iface; do
         if echo "$active_ifaces" | grep -qw "$iface"; then
             echo "$iface [UP]"
