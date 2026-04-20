@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# socks — manage a SOCKS5 proxy via SSH dynamic forwarding
+#
+# Usage:
+#   socks open   [ssh-host] [port]   Start the proxy (defaults: RFTunnel 1080)
+#   socks close  [ssh-host] [port]   Stop the proxy
+#   socks status [port]              Show whether the proxy is running
+#
+# Aliases:
+#   open  → start, up
+#   close → kill, stop, down
+
+set -euo pipefail
+
+DEFAULT_HOST="RFTunnel"
+DEFAULT_PORT="1080"
+
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+BOLD=$'\e[1m'
+RESET=$'\e[0m'
+
+die()  { echo "${RED}✗${RESET} $*" >&2; exit 1; }
+info() { echo "${BLUE}→${RESET} $*"; }
+ok()   { echo "${GREEN}✓${RESET} $*"; }
+warn() { echo "${YELLOW}!${RESET} $*"; }
+fail() { echo "${RED}✗${RESET} $*" >&2; }
+
+usage() {
+    cat >&2 <<EOF
+Usage:
+  socks open   [ssh-host] [port]   Start the proxy (defaults: ${DEFAULT_HOST} ${DEFAULT_PORT})
+  socks close  [ssh-host] [port]   Stop the proxy
+  socks status [port]              Show whether the proxy is running
+
+Aliases:
+  open  → start, up
+  close → kill, stop, down
+EOF
+    exit 1
+}
+
+port_pid() {
+    ss -tlnpH "sport = :$1" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1
+}
+
+port_in_use() {
+    ss -tlnH "sport = :$1" 2>/dev/null | grep -q .
+}
+
+cmd_open() {
+    local host="${1:-$DEFAULT_HOST}"
+    local port="${2:-$DEFAULT_PORT}"
+
+    if port_in_use "${port}"; then
+        local existing_pid
+        existing_pid=$(port_pid "${port}")
+        if [[ -n "${existing_pid}" ]]; then
+            local cmd
+            cmd=$(ps -p "${existing_pid}" -o comm= 2>/dev/null || echo "unknown")
+            die "Port ${port} already in use by pid ${existing_pid} (${cmd}). Run 'socks close' first."
+        fi
+        die "Port ${port} already in use."
+    fi
+
+    if ! ssh -G "${host}" >/dev/null 2>&1; then
+        die "SSH host alias '${host}' not found in ~/.ssh/config"
+    fi
+
+    info "Starting SOCKS5 proxy on ${BOLD}127.0.0.1:${port}${RESET} via ${BOLD}${host}${RESET}..."
+
+    # -f: background after auth
+    # -N: no remote command (just the tunnel)
+    # -D: dynamic (SOCKS) port forwarding
+    # ExitOnForwardFailure: don't silently succeed if the forward can't bind
+    ssh -fN -D "${port}" \
+        -o ExitOnForwardFailure=yes \
+        -o ServerAliveInterval=30 \
+        -o ServerAliveCountMax=3 \
+        "${host}"
+
+    sleep 0.5
+
+    if ! port_in_use "${port}"; then
+        die "SSH backgrounded but nothing is listening on :${port}"
+    fi
+
+    local pid
+    pid=$(port_pid "${port}")
+
+    ok "SOCKS5 proxy alive on :${port} (pid ${pid:-?})"
+    echo
+    echo "  ${YELLOW}Test:${RESET}    curl --socks5-hostname localhost:${port} https://ifconfig.me"
+    echo "  ${YELLOW}Kill:${RESET}    socks close"
+    echo "  ${YELLOW}Firefox:${RESET} SOCKS5  127.0.0.1  ${port}  (check 'Proxy DNS when using SOCKS v5')"
+}
+
+cmd_close() {
+    local host="${1:-$DEFAULT_HOST}"
+    local port="${2:-$DEFAULT_PORT}"
+
+    local pid
+    pid=$(port_pid "${port}" || true)
+
+    if [[ -z "${pid}" ]]; then
+        warn "No process listening on :${port} — nothing to kill"
+        exit 0
+    fi
+
+    info "Found SOCKS proxy on :${port} (pid ${pid})"
+
+    if ssh -O exit "${host}" 2>/dev/null; then
+        ok "Sent 'ssh -O exit' to ${host}"
+        sleep 0.3
+    fi
+
+    if kill -0 "${pid}" 2>/dev/null; then
+        info "Sending SIGTERM to pid ${pid}"
+        kill "${pid}" 2>/dev/null || true
+        for _ in 1 2 3 4; do
+            sleep 0.5
+            kill -0 "${pid}" 2>/dev/null || break
+        done
+    fi
+
+    if kill -0 "${pid}" 2>/dev/null; then
+        warn "Process still alive, sending SIGKILL"
+        kill -9 "${pid}" 2>/dev/null || true
+        sleep 0.3
+    fi
+
+    if port_in_use "${port}"; then
+        fail "Port :${port} is still in use"
+        exit 1
+    fi
+
+    ok "SOCKS proxy on :${port} stopped"
+}
+
+cmd_status() {
+    local port="${1:-$DEFAULT_PORT}"
+
+    if ! port_in_use "${port}"; then
+        warn "No SOCKS proxy listening on :${port}"
+        exit 1
+    fi
+
+    local pid cmd
+    pid=$(port_pid "${port}")
+    cmd=$(ps -p "${pid}" -o args= 2>/dev/null || echo "unknown")
+
+    ok "SOCKS proxy alive on :${port} (pid ${pid:-?})"
+    echo "  ${YELLOW}Process:${RESET} ${cmd}"
+}
+
+action="${1:-}"
+[[ -z "${action}" ]] && usage
+shift || true
+
+case "${action}" in
+    open|start|up)         cmd_open   "$@" ;;
+    close|kill|stop|down)  cmd_close  "$@" ;;
+    status)                cmd_status "$@" ;;
+    -h|--help|help)        usage ;;
+    *) die "Unknown action: ${action}. Run 'socks help' for usage." ;;
+esac
