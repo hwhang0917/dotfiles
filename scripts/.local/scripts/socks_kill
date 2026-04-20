@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# socks_kill — stop the SOCKS5 proxy on a given port
+#
+# Usage: socks_kill [port] [ssh-host]
+#   port      Local port the proxy is bound to (default: 1080)
+#   ssh-host  SSH host alias, used for clean 'ssh -O exit' first (default: RFTunnel)
+
+set -euo pipefail
+
+PORT="${1:-1080}"
+HOST="${2:-RFTunnel}"
+
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+RESET=$'\e[0m'
+
+info()  { echo "${BLUE}→${RESET} $*"; }
+ok()    { echo "${GREEN}✓${RESET} $*"; }
+warn()  { echo "${YELLOW}!${RESET} $*"; }
+fail()  { echo "${RED}✗${RESET} $*" >&2; }
+
+# Find the pid owning the port
+pid=$(ss -tlnpH "sport = :${PORT}" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1 || true)
+
+if [[ -z "${pid}" ]]; then
+    warn "No process listening on :${PORT} — nothing to kill"
+    exit 0
+fi
+
+info "Found SOCKS proxy on :${PORT} (pid ${pid})"
+
+# Step 1: try the clean way — tell ssh to shut down its control master
+if ssh -O exit "${HOST}" 2>/dev/null; then
+    ok "Sent 'ssh -O exit' to ${HOST}"
+    sleep 0.3
+fi
+
+# Step 2: if still alive, SIGTERM
+if kill -0 "${pid}" 2>/dev/null; then
+    info "Sending SIGTERM to pid ${pid}"
+    kill "${pid}" 2>/dev/null || true
+    # Wait up to 2s for it to exit
+    for _ in 1 2 3 4; do
+        sleep 0.5
+        kill -0 "${pid}" 2>/dev/null || break
+    done
+fi
+
+# Step 3: if still alive, SIGKILL
+if kill -0 "${pid}" 2>/dev/null; then
+    warn "Process still alive, sending SIGKILL"
+    kill -9 "${pid}" 2>/dev/null || true
+    sleep 0.3
+fi
+
+# Verify
+if ss -tlnH "sport = :${PORT}" 2>/dev/null | grep -q .; then
+    fail "Port :${PORT} is still in use"
+    exit 1
+fi
+
+ok "SOCKS proxy on :${PORT} stopped"
