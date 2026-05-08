@@ -22,7 +22,7 @@ set $menu wmenu-run -f "pango:FiraCode Nerd Font Mono Ret 18"
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-output eDP-1 bg $HOME/Pictures/wallpapers/clouds.JPG fill
+output eDP-1 bg $HOME/Pictures/wallpapers/photography/kainoa-kanter/clouds.jpg fill
 #
 # Example configuration:
 #
