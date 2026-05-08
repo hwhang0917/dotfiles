@@ -12,3 +12,4 @@ style = "bold blue"
 [os.symbols]
 Arch = "󰣇 "
 Windows = "󰍲 "
+Fedora = " "
