@@ -1,0 +1,63 @@
+#!/bin/sh
+# Manage swayidle timeouts based on AC adapter state.
+#   On AC:      display off after 20 min idle
+#   On battery: display off after  5 min idle
+# Restart swayidle whenever power state changes (polled every 5s).
+
+set -eu
+
+AC_TIMEOUT=1200
+BAT_TIMEOUT=300
+POLL_INTERVAL=5
+
+idle_pid=""
+
+ac_online_file() {
+    for type_file in /sys/class/power_supply/*/type; do
+        [ -r "$type_file" ] || continue
+        if [ "$(cat "$type_file")" = "Mains" ]; then
+            printf '%s/online\n' "$(dirname "$type_file")"
+            return 0
+        fi
+    done
+    return 1
+}
+
+power_state() {
+    f=$(ac_online_file) || { echo "bat"; return; }
+    if [ "$(cat "$f")" = "1" ]; then echo "ac"; else echo "bat"; fi
+}
+
+stop_idle() {
+    if [ -n "$idle_pid" ] && kill -0 "$idle_pid" 2>/dev/null; then
+        kill "$idle_pid" 2>/dev/null || true
+        wait "$idle_pid" 2>/dev/null || true
+    fi
+    idle_pid=""
+}
+
+start_idle() {
+    stop_idle
+    case "$1" in
+        ac) timeout=$AC_TIMEOUT ;;
+        *)  timeout=$BAT_TIMEOUT ;;
+    esac
+    swayidle -w \
+        timeout "$timeout" 'swaymsg "output * power off"' \
+            resume 'swaymsg "output * power on"' \
+        before-sleep 'swaymsg "output * power off"' &
+    idle_pid=$!
+}
+
+cleanup() { stop_idle; exit 0; }
+trap cleanup INT TERM HUP
+
+last_state=""
+while :; do
+    state=$(power_state)
+    if [ "$state" != "$last_state" ]; then
+        start_idle "$state"
+        last_state=$state
+    fi
+    sleep "$POLL_INTERVAL"
+done
