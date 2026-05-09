@@ -41,7 +41,10 @@
     "tooltip-format": "<tt>{calendar}</tt>",
     "calendar": {
       "format": {
-        "today": "<span color='#fAfBfC'><b>{}</b></span>"
+        "months":   "<span color='#cba6f7'><b>{}</b></span>",
+        "weekdays": "<span color='#f9e2af'><b>{}</b></span>",
+        "days":     "<span color='#cdd6f4'>{}</span>",
+        "today":    "<span color='#fAfBfC'><b><u>{}</u></b></span>"
       }
     },
     "actions": {
