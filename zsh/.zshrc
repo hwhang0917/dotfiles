@@ -53,6 +53,11 @@ bindkey '^X^E' edit-command-line
 
 # ============ Security =============
 umask 022
+
+# Dependency Cooldowns
+export UV_EXCLUDE_NEWER="3 days"
+export PIP_UPLOADED_PRIOR_TO="P3D"
+export COOLDOWN_MINUTES=4320
 # ===================================
 
 # ============ Settings =============
