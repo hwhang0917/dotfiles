@@ -13,7 +13,6 @@ view = [
 
 [open]
 rules = [
-    { name = "*/", use = "folder" },
     { mime = "image/*", use = "view" },
     { mime = "video/*", use = "play" },
     { mime = "audio/*", use = "play" },
