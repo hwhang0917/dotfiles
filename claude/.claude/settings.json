@@ -1,17 +1,25 @@
 {
-    "enabledPlugins": {
-        "claude-code-wakatime@wakatime": true
+  "enabledPlugins": {
+    "claude-code-wakatime@wakatime": true,
+    "superpowers@claude-plugins-official": true,
+    "context7@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "wakatime": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/wakatime/claude-code-wakatime.git"
+      }
     },
-    "extraKnownMarketplaces": {
-        "wakatime": {
-            "source": {
-                "source": "git",
-                "url": "https://github.com/wakatime/claude-code-wakatime.git"
-            }
-        }
-    },
-    "effortLevel": "high",
-    "theme": "auto",
-    "agentPushNotifEnabled": true,
-    "skipAutoPermissionPrompt": true
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "theme": "auto",
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true
 }
