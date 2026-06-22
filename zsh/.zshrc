@@ -90,6 +90,9 @@ fi
 
 # Podman settings
 export PODMAN_COMPOSE_WARNING_LOGS=false
+
+# Manual init
+MANUAL_INIT=${MANUAL_INIT:-true}
 # ===================================
 
 # ============= Plugins =============
@@ -159,4 +162,43 @@ alias sxiv="nsxiv"
 # ========== PATH & eval ============
 source "$HOME/.config/zsh/path.zsh"
 source "$HOME/.config/zsh/eval.zsh"
+# ===================================
+
+# ========= Manual Services =========
+if [[ "$MANUAL_INIT" == "true" ]]; then
+    typeset -A _manual_docker
+    _manual_docker=(
+        "$HOME/kaoni/ezflow_mock" ""
+        "$HOME/kaoni/eztalk3.0_database" "mariadb"
+    )
+
+    for dir profile in "${(@kv)_manual_docker}"; do
+        [[ -f "$dir/docker-compose.yml" ]] || continue
+        local -a prof_args
+        [[ -n "$profile" ]] && prof_args=(--profile "$profile")
+
+        local ids
+        ids=("${(@f)$(docker compose -f "$dir/docker-compose.yml" "${prof_args[@]}" ps -q 2>/dev/null)}")
+        ids=("${(@)ids:#}")
+        local is_running=false
+        if (( ${#ids} > 0 )); then
+            for id in $ids; do
+                if [[ "$(docker inspect -f '{{.State.Running}}' "$id" 2>/dev/null)" == "true" ]]; then
+                    is_running=true
+                    break
+                fi
+            done
+        fi
+
+        if [[ "$is_running" == "false" ]]; then
+            log "INFO" "Starting docker compose: ${dir:t}"
+            (cd "$dir" && docker compose "${prof_args[@]}" up -d >/dev/null 2>&1) &!
+        fi
+    done
+
+    if ! systemctl --user is-active --quiet local-eml 2>/dev/null; then
+        log "INFO" "Starting systemd user service: local-eml"
+        systemctl --user enable --now local-eml >/dev/null 2>&1
+    fi
+fi
 # ===================================
