@@ -5,7 +5,9 @@
   "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-wakatime",
-    "npm:@narumitw/pi-statusline"
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:pi-web-access",
+    "npm:pi-powerline-footer"
   ],
   "terminal": {
     "showTerminalProgress": true
