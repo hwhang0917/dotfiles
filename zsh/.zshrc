@@ -165,55 +165,5 @@ source "$HOME/.config/zsh/eval.zsh"
 # ===================================
 
 # ========= Manual Services =========
-() {
-    [[ "$MANUAL_INIT" == "true" ]] || return
-
-    local has_docker=false has_systemctl=false
-    command -v docker >/dev/null 2>&1 && has_docker=true
-    command -v systemctl >/dev/null 2>&1 && has_systemctl=true
-
-    local ezflow_present=false eztalk_present=false eml_present=false
-
-    if $has_docker; then
-        docker ps -a --filter 'name=ezflow_mock-ezflow-mock-1' --format '{{.Names}}' 2>/dev/null | grep -q '^ezflow_mock-ezflow-mock-1$' && ezflow_present=true
-        docker ps -a --filter 'name=eztalk30_database-mariadb-1' --format '{{.Names}}' 2>/dev/null | grep -q '^eztalk30_database-mariadb-1$' && eztalk_present=true
-    fi
-
-    if $has_systemctl; then
-        systemctl --user cat local-eml >/dev/null 2>&1 && eml_present=true
-    fi
-
-    # Short-circuit if docker/systemd missing or the containers/service don't exist
-    if ! $ezflow_present && ! $eztalk_present && ! $eml_present; then
-        return
-    fi
-
-    local ezflow_ok=true eztalk_ok=true eml_ok=true
-
-    if $ezflow_present; then
-        docker ps --filter 'name=ezflow_mock-ezflow-mock-1' --filter 'status=running' -q 2>/dev/null | grep -q . || ezflow_ok=false
-    fi
-    if $eztalk_present; then
-        docker ps --filter 'name=eztalk30_database-mariadb-1' --filter 'status=running' -q 2>/dev/null | grep -q . || eztalk_ok=false
-    fi
-    if $eml_present; then
-        systemctl --user is-active --quiet local-eml 2>/dev/null || eml_ok=false
-    fi
-
-    # Short-circuit if all present targets are already running
-    [[ $ezflow_ok == true && $eztalk_ok == true && $eml_ok == true ]] && return
-
-    if [[ $ezflow_present == true && $ezflow_ok == false ]]; then
-        log "INFO" "Starting docker compose: ezflow_mock"
-        (cd "$HOME/kaoni/ezflow_mock" && docker compose up -d >/dev/null 2>&1) &!
-    fi
-    if [[ $eztalk_present == true && $eztalk_ok == false ]]; then
-        log "INFO" "Starting docker compose: eztalk3.0_database"
-        (cd "$HOME/kaoni/eztalk3.0_database" && docker compose --profile mariadb up -d >/dev/null 2>&1) &!
-    fi
-    if [[ $eml_present == true && $eml_ok == false ]]; then
-        log "INFO" "Starting systemd user service: local-eml"
-        systemctl --user enable --now local-eml >/dev/null 2>&1
-    fi
-}
+[[ "$MANUAL_INIT" == "true" && -f "$HOME/.config/zsh/manual-init.zsh" ]] && source "$HOME/.config/zsh/manual-init.zsh"
 # ===================================

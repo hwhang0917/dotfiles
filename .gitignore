@@ -5,3 +5,4 @@
 # Machine-specific config
 windows/scripts/Set-Routes.config.json
 zsh/.zprofile.local
+zsh/.config/zsh/manual-init.zsh
