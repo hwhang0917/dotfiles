@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.80.2",
-  "defaultProvider": "moonshotai",
-  "defaultModel": "kimi-k2.7-code",
+  "defaultProvider": "sakana",
+  "defaultModel": "fugu-ultra-20260615",
   "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-wakatime",

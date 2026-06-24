@@ -1,0 +1,31 @@
+{
+    "providers": {
+        "sakana": {
+            "baseUrl": "https://api.sakana.ai/v1",
+            "api": "openai-completions",
+            "apiKey": "$SAKANA_API_KEY",
+            "models": [
+                {
+                    "id": "fugu",
+                    "name": "Sakana Fugu (Standard)",
+                    "input": [
+                        "text",
+                        "image"
+                    ],
+                    "contextWindow": 1000000,
+                    "reasoning": false
+                },
+                {
+                    "id": "fugu-ultra-20260615",
+                    "name": "Sakana Fugu Ultra",
+                    "input": [
+                        "text",
+                        "image"
+                    ],
+                    "contextWindow": 1000000,
+                    "reasoning": true
+                }
+            ]
+        }
+    }
+}
