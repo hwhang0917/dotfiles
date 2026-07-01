@@ -2,7 +2,9 @@
   "enabledPlugins": {
     "claude-code-wakatime@wakatime": true,
     "superpowers@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
+    "context7@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wakatime": {
@@ -16,10 +18,18 @@
         "source": "github",
         "repo": "anthropics/claude-plugins-official"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "effortLevel": "high",
+  "tui": "fullscreen",
   "theme": "auto",
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "opus"
 }
