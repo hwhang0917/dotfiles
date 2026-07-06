@@ -1,10 +1,12 @@
 {
+  "model": "claude-fable-5[1m]",
   "enabledPlugins": {
     "claude-code-wakatime@wakatime": true,
     "superpowers@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "ponytail@ponytail": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "wakatime": {
@@ -30,6 +32,5 @@
   "tui": "fullscreen",
   "theme": "auto",
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "opus"
+  "skipAutoPermissionPrompt": true
 }
