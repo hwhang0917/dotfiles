@@ -1,65 +1,89 @@
 #!/bin/sh
 
-# Cross-platform clipboard copy utility
-# Usage: echo "text to copy" | cross-copy
-#        cross-copy "direct text argument"
-
 set -eu
 
+CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/pastebin/config"
+DEFAULT_REMOTE_FILE=".local/state/pastebin/clip"
+DEFAULT_SSH_TIMEOUT="5"
+
 show_usage() {
+    {
     echo "Usage: $0 [text]"
     echo "       echo 'text' | $0"
     echo ""
-    echo "Cross-platform clipboard utility that automatically detects:"
-    echo "  - Windows: uses 'clip' command"
-    echo "  - macOS: uses 'pbcopy' command"
-    echo "  - Linux Wayland: uses 'wl-copy' command"
-    echo "  - Linux X11: uses 'xclip' command"
+    echo "Copies input to the system clipboard, auto-detecting:"
+    echo "  - Windows: 'clip'"
+    echo "  - macOS: 'pbcopy'"
+    echo "  - Linux Wayland: 'wl-copy'"
+    echo "  - Linux X11: 'xclip'"
+    echo ""
+    echo "If PASTEBIN_HOST is set, also pushes the content to that host"
+    echo "over ssh so other machines can cross-paste it."
+    echo ""
+    echo "Config: $CONFIG_FILE (shell fragment; env vars take precedence)"
+    echo "  PASTEBIN_HOST         ssh destination (unset/empty = local only)"
+    echo "  PASTEBIN_REMOTE_FILE  path on host (default: $DEFAULT_REMOTE_FILE)"
+    echo "  PASTEBIN_SSH_TIMEOUT  seconds (default: $DEFAULT_SSH_TIMEOUT)"
+    } >&2
     exit 1
 }
 
-detect_clipboard_command() {
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        if [ "${PASTEBIN_HOST+x}" = x ]; then env_host="$PASTEBIN_HOST"; fi
+        if [ "${PASTEBIN_REMOTE_FILE+x}" = x ]; then env_remote_file="$PASTEBIN_REMOTE_FILE"; fi
+        if [ "${PASTEBIN_SSH_TIMEOUT+x}" = x ]; then env_ssh_timeout="$PASTEBIN_SSH_TIMEOUT"; fi
+        . "$CONFIG_FILE"
+        if [ "${env_host+x}" = x ]; then PASTEBIN_HOST="$env_host"; fi
+        if [ "${env_remote_file+x}" = x ]; then PASTEBIN_REMOTE_FILE="$env_remote_file"; fi
+        if [ "${env_ssh_timeout+x}" = x ]; then PASTEBIN_SSH_TIMEOUT="$env_ssh_timeout"; fi
+    fi
+    PASTEBIN_HOST="${PASTEBIN_HOST:-}"
+    PASTEBIN_REMOTE_FILE="${PASTEBIN_REMOTE_FILE:-$DEFAULT_REMOTE_FILE}"
+    PASTEBIN_SSH_TIMEOUT="${PASTEBIN_SSH_TIMEOUT:-$DEFAULT_SSH_TIMEOUT}"
+}
+
+detect_copy_cmd() {
     os="${OSTYPE:-$(uname -s)}"
     case "$os" in
         msys|cygwin)
             echo "clip"
-            return 0
             ;;
         darwin*|Darwin*)
             echo "pbcopy"
-            return 0
             ;;
         linux*|gnu*|Linux*)
             if [ -n "${WAYLAND_DISPLAY:-}" ]; then
                 echo "wl-copy"
-                return 0
             elif [ -n "${DISPLAY:-}" ]; then
                 echo "xclip -selection clipboard"
-                return 0
             else
                 echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
                 return 1
             fi
             ;;
+        *)
+            echo "ERROR: Unsupported platform: ${os}" >&2
+            return 1
+            ;;
     esac
-
-    echo "ERROR: Unsupported platform: ${os}" >&2
-    return 1
 }
 
-verify_clipboard_command() {
-    cmd="$1"
-    base_cmd=$(echo "$cmd" | awk '{print $1}')
-
-    if ! command -v "$base_cmd" >/dev/null 2>&1; then
-        echo "ERROR: Clipboard command '$base_cmd' not found in PATH" >&2
-        echo "Please install the appropriate clipboard utility for your system:" >&2
-        echo "  - Linux Wayland: pacman -S wl-clipboard (or equivalent for your distro)" >&2
-        echo "  - Linux X11: pacman -S xclip (or equivalent for your distro)" >&2
+copy_local() {
+    copy_cmd=$(detect_copy_cmd) || return 1
+    if ! command -v "${copy_cmd%% *}" >/dev/null 2>&1; then
+        echo "ERROR: Clipboard command '${copy_cmd%% *}' not found in PATH" >&2
         return 1
     fi
+    printf '%s' "$1" | $copy_cmd || return 1
+    echo "Copied to clipboard using: $copy_cmd" >&2
+}
 
-    return 0
+push_remote() {
+    remote_dir=$(dirname "$PASTEBIN_REMOTE_FILE")
+    printf '%s' "$1" | ssh -o BatchMode=yes -o ConnectTimeout="$PASTEBIN_SSH_TIMEOUT" \
+        "$PASTEBIN_HOST" "mkdir -p '$remote_dir' && cat > '$PASTEBIN_REMOTE_FILE'" || return 1
+    echo "Pushed to $PASTEBIN_HOST:$PASTEBIN_REMOTE_FILE" >&2
 }
 
 main() {
@@ -67,8 +91,7 @@ main() {
         show_usage
     fi
 
-    clipboard_cmd=$(detect_clipboard_command) || exit 1
-    verify_clipboard_command "$clipboard_cmd" || exit 1
+    load_config
 
     if [ $# -gt 0 ]; then
         input_text="$*"
@@ -79,8 +102,21 @@ main() {
         input_text=$(cat)
     fi
 
-    printf '%s' "$input_text" | eval "$clipboard_cmd"
-    echo "Copied to clipboard using: $clipboard_cmd" >&2
+    local_ok=true
+    copy_local "$input_text" || local_ok=false
+
+    remote_ok=false
+    if [ -n "$PASTEBIN_HOST" ]; then
+        if push_remote "$input_text"; then
+            remote_ok=true
+        else
+            echo "WARN: Could not push to $PASTEBIN_HOST; local clipboard only" >&2
+        fi
+    fi
+
+    if [ "$local_ok" = false ] && [ "$remote_ok" = false ]; then
+        exit 1
+    fi
 }
 
 main "$@"

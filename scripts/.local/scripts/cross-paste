@@ -1,105 +1,110 @@
 #!/bin/sh
 
-# Cross-platform clipboard paste utility
-# Usage: cross-paste
-#        cross-paste --quote    (wraps output in quotes)
-#        cross-paste --escape   (escapes special characters)
-
 set -eu
 
+CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/pastebin/config"
+DEFAULT_REMOTE_FILE=".local/state/pastebin/clip"
+DEFAULT_SSH_TIMEOUT="5"
+
 show_usage() {
-    echo "Usage: $0 [options]"
-    echo ""
-    echo "Cross-platform clipboard paste utility that automatically detects:"
-    echo "  - Windows: uses 'powershell Get-Clipboard' command"
-    echo "  - macOS: uses 'pbpaste' command"
-    echo "  - Linux Wayland: uses 'wl-paste' command"
-    echo "  - Linux X11: uses 'xclip' command"
-    echo ""
-    echo "Options:"
-    echo "  --quote, -q     Wrap output in double quotes"
-    echo "  --escape, -e    Escape special shell characters"
-    echo "  --help, -h      Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  $0                    # Simple paste"
-    echo "  $0 --quote            # Paste with quotes: \"content\""
-    echo "  $0 --escape           # Paste with escaped characters"
+    {
+        echo "Usage: $0 [options]"
+        echo ""
+        echo "Prints clipboard content to stdout. If PASTEBIN_HOST is set,"
+        echo "fetches from that host over ssh (and mirrors into the local"
+        echo "clipboard); falls back to the local clipboard on failure."
+        echo ""
+        echo "Local clipboard auto-detection:"
+        echo "  - Windows: 'powershell Get-Clipboard'"
+        echo "  - macOS: 'pbpaste'"
+        echo "  - Linux Wayland: 'wl-paste'"
+        echo "  - Linux X11: 'xclip'"
+        echo ""
+        echo "Options:"
+        echo "  --quote, -q     Wrap output in double quotes"
+        echo "  --escape, -e    Escape special shell characters"
+        echo "  --help, -h      Show this help message"
+        echo ""
+        echo "Config: $CONFIG_FILE (shell fragment; env vars take precedence)"
+        echo "  PASTEBIN_HOST         ssh source (unset/empty = local only)"
+        echo "  PASTEBIN_REMOTE_FILE  path on host (default: $DEFAULT_REMOTE_FILE)"
+        echo "  PASTEBIN_SSH_TIMEOUT  seconds (default: $DEFAULT_SSH_TIMEOUT)"
+    } >&2
     exit 1
 }
 
-detect_paste_command() {
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        if [ "${PASTEBIN_HOST+x}" = x ]; then env_host="$PASTEBIN_HOST"; fi
+        if [ "${PASTEBIN_REMOTE_FILE+x}" = x ]; then env_remote_file="$PASTEBIN_REMOTE_FILE"; fi
+        if [ "${PASTEBIN_SSH_TIMEOUT+x}" = x ]; then env_ssh_timeout="$PASTEBIN_SSH_TIMEOUT"; fi
+        . "$CONFIG_FILE"
+        if [ "${env_host+x}" = x ]; then PASTEBIN_HOST="$env_host"; fi
+        if [ "${env_remote_file+x}" = x ]; then PASTEBIN_REMOTE_FILE="$env_remote_file"; fi
+        if [ "${env_ssh_timeout+x}" = x ]; then PASTEBIN_SSH_TIMEOUT="$env_ssh_timeout"; fi
+    fi
+    PASTEBIN_HOST="${PASTEBIN_HOST:-}"
+    PASTEBIN_REMOTE_FILE="${PASTEBIN_REMOTE_FILE:-$DEFAULT_REMOTE_FILE}"
+    PASTEBIN_SSH_TIMEOUT="${PASTEBIN_SSH_TIMEOUT:-$DEFAULT_SSH_TIMEOUT}"
+}
+
+detect_paste_cmd() {
     os="${OSTYPE:-$(uname -s)}"
     case "$os" in
         msys|cygwin)
             echo "powershell.exe -Command Get-Clipboard"
-            return 0
             ;;
         darwin*|Darwin*)
             echo "pbpaste"
-            return 0
             ;;
         linux*|gnu*|Linux*)
             if [ -n "${WAYLAND_DISPLAY:-}" ]; then
                 echo "wl-paste"
-                return 0
             elif [ -n "${DISPLAY:-}" ]; then
                 echo "xclip -selection clipboard -o"
-                return 0
             else
                 echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
                 return 1
             fi
             ;;
+        *)
+            echo "ERROR: Unsupported platform: ${os}" >&2
+            return 1
+            ;;
     esac
-
-    echo "ERROR: Unsupported platform: ${os}" >&2
-    return 1
 }
 
-verify_paste_command() {
-    cmd="$1"
-
-    case "$cmd" in
-        *powershell.exe*) base_cmd="powershell.exe" ;;
-        *)                base_cmd=$(echo "$cmd" | awk '{print $1}') ;;
-    esac
-
-    if ! command -v "$base_cmd" >/dev/null 2>&1; then
-        echo "ERROR: Clipboard command '$base_cmd' not found in PATH" >&2
-        echo "Please install the appropriate clipboard utility for your system:" >&2
-        echo "  - Linux Wayland: pacman -S wl-clipboard (or equivalent for your distro)" >&2
-        echo "  - Linux X11: pacman -S xclip (or equivalent for your distro)" >&2
-        echo "  - Windows: PowerShell should be available by default" >&2
+paste_local() {
+    paste_cmd=$(detect_paste_cmd) || return 1
+    if ! command -v "${paste_cmd%% *}" >/dev/null 2>&1; then
+        echo "ERROR: Clipboard command '${paste_cmd%% *}' not found in PATH" >&2
         return 1
     fi
+    $paste_cmd 2>/dev/null
+}
 
-    return 0
+fetch_remote() {
+    ssh -o BatchMode=yes -o ConnectTimeout="$PASTEBIN_SSH_TIMEOUT" \
+        "$PASTEBIN_HOST" "cat '$PASTEBIN_REMOTE_FILE'"
+}
+
+mirror_local() {
+    cross_copy="$(dirname "$0")/cross-copy"
+    if [ ! -x "$cross_copy" ]; then
+        cross_copy="cross-copy"
+        command -v "$cross_copy" >/dev/null 2>&1 || return 0
+    fi
+    printf '%s' "$1" | PASTEBIN_HOST="" "$cross_copy" 2>/dev/null \
+        || echo "WARN: Could not mirror into local clipboard" >&2
 }
 
 escape_shell_chars() {
     printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\$/\\$/g; s/`/\\`/g'
 }
 
-process_clipboard_content() {
-    content="$1"
-    quote_flag="$2"
-    escape_flag="$3"
-
-    if [ "$escape_flag" = "true" ]; then
-        content=$(escape_shell_chars "$content")
-    fi
-
-    if [ "$quote_flag" = "true" ]; then
-        content="\"$content\""
-    fi
-
-    printf '%s' "$content"
-}
-
 main() {
-    quote_flag="false"
-    escape_flag="false"
+    quote_flag=false
+    escape_flag=false
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -107,11 +112,11 @@ main() {
                 show_usage
                 ;;
             -q|--quote)
-                quote_flag="true"
+                quote_flag=true
                 shift
                 ;;
             -e|--escape)
-                escape_flag="true"
+                escape_flag=true
                 shift
                 ;;
             *)
@@ -122,17 +127,33 @@ main() {
         esac
     done
 
-    paste_cmd=$(detect_paste_command) || exit 1
-    verify_paste_command "$paste_cmd" || exit 1
+    load_config
 
-    if ! clipboard_content=$(eval "$paste_cmd" 2>/dev/null); then
-        echo "ERROR: Failed to retrieve clipboard content" >&2
-        echo "The clipboard might be empty or the clipboard service might be unavailable" >&2
-        exit 1
+    content=""
+    fetched=false
+    if [ -n "$PASTEBIN_HOST" ]; then
+        if content=$(fetch_remote); then
+            fetched=true
+            mirror_local "$content"
+        else
+            echo "WARN: Could not fetch from $PASTEBIN_HOST; falling back to local clipboard" >&2
+        fi
     fi
 
-    processed_content=$(process_clipboard_content "$clipboard_content" "$quote_flag" "$escape_flag")
-    printf '%s' "$processed_content"
+    if [ "$fetched" = false ]; then
+        if ! content=$(paste_local); then
+            echo "ERROR: Failed to retrieve clipboard content" >&2
+            exit 1
+        fi
+    fi
+
+    if [ "$escape_flag" = true ]; then
+        content=$(escape_shell_chars "$content")
+    fi
+    if [ "$quote_flag" = true ]; then
+        content="\"$content\""
+    fi
+    printf '%s' "$content"
 }
 
 main "$@"
