@@ -32,5 +32,18 @@
   "tui": "fullscreen",
   "theme": "auto",
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/hswhang/.local/bin/dcg"
+          }
+        ]
+      }
+    ]
+  }
 }
