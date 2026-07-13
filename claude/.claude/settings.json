@@ -1,49 +1,49 @@
 {
-  "model": "claude-fable-5[1m]",
-  "enabledPlugins": {
-    "claude-code-wakatime@wakatime": true,
-    "superpowers@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
-    "ponytail@ponytail": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "wakatime": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/wakatime/claude-code-wakatime.git"
-      }
+    "agentPushNotifEnabled": true,
+    "effortLevel": "high",
+    "enabledPlugins": {
+        "claude-code-wakatime@wakatime": true,
+        "context7@claude-plugins-official": true,
+        "gopls-lsp@claude-plugins-official": true,
+        "ponytail@ponytail": true,
+        "rust-analyzer-lsp@claude-plugins-official": true,
+        "superpowers@claude-plugins-official": true
     },
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
+    "extraKnownMarketplaces": {
+        "claude-plugins-official": {
+            "source": {
+                "repo": "anthropics/claude-plugins-official",
+                "source": "github"
+            }
+        },
+        "ponytail": {
+            "source": {
+                "repo": "DietrichGebert/ponytail",
+                "source": "github"
+            }
+        },
+        "wakatime": {
+            "source": {
+                "source": "git",
+                "url": "https://github.com/wakatime/claude-code-wakatime.git"
+            }
+        }
     },
-    "ponytail": {
-      "source": {
-        "source": "github",
-        "repo": "DietrichGebert/ponytail"
-      }
-    }
-  },
-  "effortLevel": "high",
-  "tui": "fullscreen",
-  "theme": "auto",
-  "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/hswhang/.local/bin/dcg"
-          }
+    "hooks": {
+        "PreToolUse": [
+            {
+                "hooks": [
+                    {
+                        "command": "/home/hswhang/.local/bin/dcg",
+                        "type": "command"
+                    }
+                ],
+                "matcher": "Bash"
+            }
         ]
-      }
-    ]
-  }
+    },
+    "model": "claude-fable-5[1m]",
+    "skipAutoPermissionPrompt": true,
+    "theme": "auto",
+    "tui": "fullscreen"
 }
