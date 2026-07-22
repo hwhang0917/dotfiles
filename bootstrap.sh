@@ -397,6 +397,17 @@ setup_git_config() {
     fi
 }
 
+# Register the clean filter referenced by .gitattributes. Git filters live in
+# .git/config (not tracked), so this must run per clone to hide local /model
+# switches in claude/.claude/settings.json from git.
+setup_git_filters() {
+    log_step "Registering git clean filters..."
+    git -C "$DOTFILES_DIR" config filter.claude-model.clean \
+        'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1opus[1m]\2/'\'''
+    git -C "$DOTFILES_DIR" config filter.claude-model.smudge cat
+    log_info "claude-model filter registered"
+}
+
 # ── Main ──────────────────────────────────────────────────────
 
 main() {
@@ -416,6 +427,7 @@ main() {
     install_optional_deps "$platform"
     interactive_stow "$platform"
     setup_git_config
+    setup_git_filters
 
     echo ""
     log_info "Bootstrap complete!"

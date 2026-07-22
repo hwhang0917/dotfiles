@@ -54,6 +54,7 @@ The bootstrap script will:
 
 6. Interactively select stow packages (platform defaults pre-selected)
 7. Remind to set up git local configuration if missing
+8. Register the [`claude-model` clean filter](#claude-model-git-filter)
 
 ### Platform packages
 
@@ -157,6 +158,29 @@ Optionally add `includeIf` for work-specific configs:
 [includeIf "gitdir:~/work/"]
     path = ~/work/.gitconfig
 ```
+
+### claude-model git filter
+
+`claude/.claude/settings.json` is tracked, but Claude Code's `/model` command
+rewrites its `model` field on every switch. To keep the file committable while
+ignoring those local model changes, a git [clean filter](https://git-scm.com/docs/gitattributes#_filter)
+(declared in `.gitattributes`) normalizes the `model` line to a canonical value
+whenever git reads the file — your working copy keeps whatever model you set, but
+git never sees the difference. Real edits (plugins, hooks, `effortLevel`) still
+show and commit normally.
+
+Git filters live in `.git/config`, which is **not** cloned, so the filter must be
+registered per machine. `bootstrap.sh` does this automatically; to set it up
+manually:
+
+```bash
+git config filter.claude-model.clean \
+  'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1opus[1m]\2/'\'''
+git config filter.claude-model.smudge cat
+```
+
+Until it's registered, git falls back to committing the literal `model` line (no
+error, just no filtering).
 
 ## Uninstallation
 
