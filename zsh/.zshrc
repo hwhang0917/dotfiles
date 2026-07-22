@@ -172,11 +172,21 @@ source "$HOME/.config/zsh/eval.zsh"
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 # ===================================
 
-# dcg: warn if hook was silently removed from Claude Code settings
-if command -v dcg &>/dev/null && command -v jq &>/dev/null; then
-  if [ -f "$HOME/.claude/settings.json" ] && \
-     ! jq -e '.hooks.PreToolUse[]? | select(.hooks[]?.command | test("dcg$"))' \
-       "$HOME/.claude/settings.json" &>/dev/null; then
-    printf '\033[1;33m[dcg] Hook missing from ~/.claude/settings.json — run: dcg install\033[0m\n'
-  fi
-fi
+# ============== Conda ==============
+# Portable conda init: first existing base among common install locations.
+# Override with CONDA_ROOT in ~/.zshrc.local for non-standard paths.
+for _conda_base in "$CONDA_ROOT" "$HOME/miniconda3" "$HOME/anaconda3" "$HOME/miniforge3" "/opt/miniconda3" "/opt/conda"; do
+    [[ -x "$_conda_base/bin/conda" ]] || continue
+    __conda_setup="$("$_conda_base/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    elif [ -f "$_conda_base/etc/profile.d/conda.sh" ]; then
+        . "$_conda_base/etc/profile.d/conda.sh"
+    else
+        export PATH="$_conda_base/bin:$PATH"
+    fi
+    unset __conda_setup
+    break
+done
+unset _conda_base
+# ===================================
