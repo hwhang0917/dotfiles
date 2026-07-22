@@ -15,3 +15,8 @@ Fedora = " "
 
 [golang]
 symbol = " "
+
+[conda]
+format = "via [$symbol$environment]($style) "
+ignore_base = true
+symbol = " "
