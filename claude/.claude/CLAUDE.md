@@ -5,8 +5,8 @@
 - Default to the latest stable release unless a constraint says otherwise. Match the manifest/lockfile's version syntax for the ecosystem.
 
 ## Code style
-- Write clean, readable, self-documenting code. Clear names over clever ones.
-- Do not write comments. Only comment when the *why* genuinely can't live in the code itself (non-obvious workaround, external gotcha, business rule). Never narrate *what* the code does.
+- Write code that reads like the surrounding code: match its comment density, naming, and idiom.
+- Clear names over clever ones. Comment the *why* when it can't live in the code (non-obvious workaround, external gotcha, business rule), not the *what*.
 
 ## No hardcoding
 - No magic values, secrets, URLs, hosts, paths, ports, or timeouts inline.
