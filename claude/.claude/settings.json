@@ -15,7 +15,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"$HOME/.claude/statusline.sh\"",
+    "command": "if uname -s | grep -qiE 'mingw|msys|cygwin'; then powershell -NoProfile -Command '& \"$HOME/.claude/statusline.ps1\"'; else bash \"$HOME/.claude/statusline.sh\"; fi",
     "padding": 0,
     "refreshInterval": 60
   },
