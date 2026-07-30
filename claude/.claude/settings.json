@@ -25,7 +25,9 @@
     "gopls-lsp@claude-plugins-official": true,
     "ponytail@ponytail": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "humanize-korean@im-not-ai": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -44,6 +46,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/wakatime/claude-code-wakatime.git"
+      }
+    },
+    "im-not-ai": {
+      "source": {
+        "source": "github",
+        "repo": "epoko77-ai/im-not-ai"
       }
     }
   },
