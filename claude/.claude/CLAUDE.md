@@ -11,3 +11,7 @@
 ## No hardcoding
 - No magic values, secrets, URLs, hosts, paths, ports, or timeouts inline.
 - Source config from env vars, config files, or named constants. Fail loudly when required config is missing.
+
+## Commit convention
+- Follow Conventional Commits: `type(scope): message` (e.g. `feat(scripts): add ec2ls`, `chore(claude): enable plugin`). Common types: feat, fix, chore, docs, refactor, test, style, perf.
+- Do not include the `Claude-Session:` URL trailer in commit messages.
