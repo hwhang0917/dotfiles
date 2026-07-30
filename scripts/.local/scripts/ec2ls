@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# List EC2 instances as a table
+
+if ! command -v aws > /dev/null 2>&1; then
+    echo "[ERROR] aws-cli is not installed." >&2
+    exit 1
+fi
+if ! command -v jq > /dev/null 2>&1; then
+    echo "[ERROR] jq is not installed." >&2
+    exit 1
+fi
+if ! command -v column > /dev/null 2>&1; then
+    echo "[ERROR] column is not installed." >&2
+    exit 1
+fi
+
+aws ec2 describe-instances | jq -r '
+  ["NAME","ID","TYPE","STATE","PUBLIC_IP","PRIVATE_IP"],
+  (.Reservations[].Instances[] |
+    [(.Tags[]? | select(.Key=="Name") | .Value) // "-",
+     .InstanceId, .InstanceType, .State.Name,
+     .PublicIpAddress // "-", .PrivateIpAddress // "-"]) | @tsv
+' | column -t
