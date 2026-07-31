@@ -41,6 +41,7 @@ tooltip label {
 }
 #disk {
     padding: 0px 5px;
+    margin-left: 12px;
     transition: all .3s ease;
     color:@text;
 }
