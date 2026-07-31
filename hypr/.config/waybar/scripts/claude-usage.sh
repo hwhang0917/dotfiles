@@ -21,13 +21,13 @@ IFS=$'\t' read -r h5 h5_reset d7 d7_reset <<<"$(
 )"
 [ -n "$h5" ] || hide
 
-bar() { # $1 = integer percent -> ▰▰▰▱▱
+bar() { # $1 = integer percent -> ███░░
   # Round to nearest cell so a non-zero percent never renders as an empty bar.
   local filled=$(( ($1 * BAR_CELLS + 50) / 100 )) i out=''
   [ "$filled" -gt "$BAR_CELLS" ] && filled=$BAR_CELLS
   [ "$filled" -eq 0 ] && [ "$1" -gt 0 ] && filled=1
   for ((i = 0; i < BAR_CELLS; i++)); do
-    [ "$i" -lt "$filled" ] && out+='▰' || out+='▱'
+    [ "$i" -lt "$filled" ] && out+='█' || out+='░'
   done
   printf '%s' "$out"
 }
