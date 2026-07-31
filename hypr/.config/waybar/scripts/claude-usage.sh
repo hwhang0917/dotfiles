@@ -57,7 +57,7 @@ if [ "$worst" -ge "$CRIT_PCT" ]; then class=critical
 elif [ "$worst" -ge "$WARN_PCT" ]; then class=warning; fi
 
 text="󰧑 $(gauge 5h "$h5" "$h5_reset")"
-[ -n "$d7" ] && text+="  $(gauge 7d "$d7" "$d7_reset")"
+[ -n "$d7" ] && text+="   │   $(gauge 7d "$d7" "$d7_reset")"
 
 tooltip="Claude usage (from last statusline update)"
 tooltip+=$'\n'"5h: ${p5}% — resets $( [ "$h5_reset" != null ] && date -d "@${h5_reset%.*}" '+%a %H:%M' || echo '?' )"
