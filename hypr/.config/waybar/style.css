@@ -32,9 +32,20 @@ tooltip {
     background:@base;
     color: @text;
 }
-#clock:hover, #custom-pacman:hover, #custom-notification:hover,#bluetooth:hover,#network:hover,#battery:hover, #cpu:hover,#memory:hover,#temperature:hover{
+#clock:hover, #custom-pacman:hover, #custom-notification:hover,#bluetooth:hover,#network:hover,#battery:hover, #cpu:hover,#memory:hover,#temperature:hover,#custom-claude:hover{
     transition: all .3s ease;
     color:@blue;
+}
+#custom-claude {
+    padding: 0px 5px;
+    transition: all .3s ease;
+    color:@text;
+}
+#custom-claude.warning {
+    color: #ffbe61;
+}
+#custom-claude.critical {
+    color: #f53c3c;
 }
 #custom-notification {
     padding: 0px 5px;

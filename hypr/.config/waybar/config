@@ -9,6 +9,7 @@
     "hyprland/workspaces"
   ],
   "modules-right": [
+    "custom/claude",
     "group/expand",
     "bluetooth",
     "network",
@@ -92,6 +93,12 @@
       "󰂂",
       "󰁹"
     ]
+  },
+  "custom/claude": {
+    "exec": "~/.config/waybar/scripts/claude-usage.sh",
+    "return-type": "json",
+    "interval": 60,
+    "format": "{}"
   },
   "custom/expand": {
     "format": "",

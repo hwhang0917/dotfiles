@@ -75,6 +75,14 @@ IFS=$'\t' read -r cwd model ctx_pct h5_pct h5_reset d7_pct d7_reset wt_branch <<
   ] | @tsv'
 )"
 
+# Drop the rate-limit gauges where session-less consumers (waybar) can read
+# them; they recompute the countdowns from the raw reset epochs.
+if [ -n "$h5_pct" ]; then
+  printf '{"h5_pct":%s,"h5_reset":%s,"d7_pct":%s,"d7_reset":%s}\n' \
+    "$h5_pct" "${h5_reset:-null}" "${d7_pct:-null}" "${d7_reset:-null}" \
+    >"${XDG_CACHE_HOME:-$HOME/.cache}/claude-usage.json"
+fi
+
 # Terminal width. A statusline hook has no tty on stdout, so borrow the TUI's:
 # /dev/tty first, else the parent claude process's own stdout. Empty when
 # undeterminable — callers then skip stretching rather than guess and wrap.
