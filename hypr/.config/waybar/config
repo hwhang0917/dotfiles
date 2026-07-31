@@ -3,7 +3,8 @@
   "position": "top",
   "reload_style_on_change": true,
   "modules-left": [
-    "clock"
+    "clock",
+    "disk"
   ],
   "modules-center": [
     "hyprland/workspaces"
@@ -53,6 +54,12 @@
       "on-click-right": "shift_down",
       "on-click": "shift_up"
     }
+  },
+  "disk": {
+    "interval": 300,
+    "path": "/",
+    "format": "󰋊 {percentage_used}%",
+    "tooltip-format": "{used} / {total} used ({percentage_used}%)\n{free} free on {path}"
   },
   "network": {
     "format-wifi": "",
