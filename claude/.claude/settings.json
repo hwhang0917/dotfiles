@@ -1,18 +1,5 @@
 {
   "model": "opus[1m]",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/hswhang/.local/bin/dcg"
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "if uname -s | grep -qiE 'mingw|msys|cygwin'; then powershell -NoProfile -Command '& \"$HOME/.claude/statusline.ps1\"'; else bash \"$HOME/.claude/statusline.sh\"; fi",
