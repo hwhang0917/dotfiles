@@ -39,7 +39,7 @@ The bootstrap script will:
 
 1. Check for required dependencies (git, stow, curl)
 2. Detect your platform (linux, wsl, macos, windows)
-3. Install [gum](https://github.com/charmbracelet/gum) for interactive prompts (falls back to basic `read` if unavailable)
+3. Use [gum](https://github.com/charmbracelet/gum) for interactive prompts if installed (falls back to basic `read`)
 4. Initialize git submodules
 5. Interactively select optional tools to install:
 

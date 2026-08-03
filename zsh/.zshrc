@@ -41,13 +41,6 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
 setopt SHARE_HISTORY
 
-# Terminal colors
-if [[ -n "$TMUX" ]]; then
-    export TERM=screen-256color
-else
-    export TERM=xterm-256color
-fi
-
 # Editor preference
 if command -v nvim >/dev/null 2>&1; then
     export EDITOR="nvim"
