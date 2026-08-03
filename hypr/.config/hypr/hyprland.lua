@@ -35,9 +35,7 @@ end)
 -- See https://wiki.hypr.land/Configuring/Environment-variables/
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
-hl.env("GTK_IM_MODULE", "kime")
-hl.env("QT_IM_MODULE", "kime")
-hl.env("XMODIFIERS", "@im=kime")
+-- kime IM vars live in zsh/.zprofile (guarded, propagates through uwsm)
 hl.env("QT_QPA_PLATFORM", "wayland")
 
 ---------------------
@@ -159,25 +157,6 @@ hl.animation({ leaf = "workspaces", enabled = true, speed = 1.94, bezier = "almo
 hl.animation({ leaf = "workspacesIn", enabled = true, speed = 1.21, bezier = "almostLinear", style = "fade" })
 hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "fade" })
 
--- Ref https://wiki.hypr.land/Configuring/Workspace-Rules/
--- "Smart gaps" / "No gaps when only"
--- uncomment all if you wish to use that.
--- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
--- hl.workspace_rule({ workspace = "f[1]", gaps_out = 0, gaps_in = 0 })
--- hl.window_rule({ match = { float = false, workspace = "w[tv1]" }, border_size = 0, rounding = 0 })
--- hl.window_rule({ match = { float = false, workspace = "f[1]" }, border_size = 0, rounding = 0 })
-
--------------
---- INPUT ---
--------------
-
--- Example per-device config
--- See https://wiki.hypr.land/Configuring/Devices/ for more
-hl.device({
-	name = "epic-mouse-v1",
-	sensitivity = -0.5,
-})
-
 -------------------
 --- KEYBINDINGS ---
 -------------------
@@ -243,8 +222,5 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 
 -- See https://wiki.hypr.land/Configuring/Window-Rules/ for more
 
--- Example windowrule
--- hl.window_rule({ match = { class = "^(kitty)$", title = "^(kitty)$" }, float = true })
-
--- Ignore maximize requests from apps. You'll probably like this.
--- hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
+-- Ignore maximize requests from apps
+hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
