@@ -7,3 +7,6 @@
 [submodule "zsh/.zsh-plugins/zsh-syntax-highlighting"]
 	path = zsh/.zsh-plugins/zsh-syntax-highlighting
 	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+[submodule "hypr/.config/hypr/wallpapers"]
+	path = hypr/.config/hypr/wallpapers
+	url = https://github.com/rose-pine/wallpapers
