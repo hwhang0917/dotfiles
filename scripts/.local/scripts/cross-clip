@@ -1,0 +1,128 @@
+#!/bin/sh
+
+# Cross-platform clipboard utility. Direction comes from the invoked name
+# (cross-copy / cross-paste symlinks) or the first argument (cross-clip copy).
+# Copy:  echo 'text' | cross-copy    or    cross-copy "text"
+# Paste: cross-paste [--quote|-q] [--escape|-e]
+
+set -eu
+
+show_usage() {
+    echo "Usage: cross-copy [text]           (or: echo 'text' | cross-copy)"
+    echo "       cross-paste [--quote|-q] [--escape|-e]"
+    echo "       cross-clip <copy|paste> [args]"
+    echo ""
+    echo "Cross-platform clipboard utility that automatically detects:"
+    echo "  - Windows: 'clip' / 'powershell Get-Clipboard'"
+    echo "  - macOS: 'pbcopy' / 'pbpaste'"
+    echo "  - Linux Wayland: 'wl-copy' / 'wl-paste'"
+    echo "  - Linux X11: 'xclip'"
+    exit 1
+}
+
+# Prints the platform clipboard command for $1 (copy|paste)
+detect_clipboard_command() {
+    os="${OSTYPE:-$(uname -s)}"
+    case "$os" in
+        msys|cygwin)
+            [ "$1" = "copy" ] && echo "clip" || echo "powershell.exe -Command Get-Clipboard"
+            ;;
+        darwin*|Darwin*)
+            [ "$1" = "copy" ] && echo "pbcopy" || echo "pbpaste"
+            ;;
+        linux*|gnu*|Linux*)
+            if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+                [ "$1" = "copy" ] && echo "wl-copy" || echo "wl-paste"
+            elif [ -n "${DISPLAY:-}" ]; then
+                [ "$1" = "copy" ] && echo "xclip -selection clipboard" || echo "xclip -selection clipboard -o"
+            else
+                echo "ERROR: No display server detected (neither Wayland nor X11)" >&2
+                return 1
+            fi
+            ;;
+        *)
+            echo "ERROR: Unsupported platform: ${os}" >&2
+            return 1
+            ;;
+    esac
+}
+
+verify_clipboard_command() {
+    case "$1" in
+        *powershell.exe*) base_cmd="powershell.exe" ;;
+        *)                base_cmd="${1%% *}" ;;
+    esac
+
+    if ! command -v "$base_cmd" >/dev/null 2>&1; then
+        echo "ERROR: Clipboard command '$base_cmd' not found in PATH" >&2
+        echo "Please install the appropriate clipboard utility for your system:" >&2
+        echo "  - Linux Wayland: pacman -S wl-clipboard (or equivalent for your distro)" >&2
+        echo "  - Linux X11: pacman -S xclip (or equivalent for your distro)" >&2
+        return 1
+    fi
+}
+
+do_copy() {
+    [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && show_usage
+
+    clipboard_cmd=$(detect_clipboard_command copy) || exit 1
+    verify_clipboard_command "$clipboard_cmd" || exit 1
+
+    if [ $# -gt 0 ]; then
+        input_text="$*"
+    else
+        [ -t 0 ] && show_usage
+        input_text=$(cat)
+    fi
+
+    printf '%s' "$input_text" | eval "$clipboard_cmd"
+    echo "Copied to clipboard using: $clipboard_cmd" >&2
+}
+
+do_paste() {
+    quote_flag="false"
+    escape_flag="false"
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -h|--help)   show_usage ;;
+            -q|--quote)  quote_flag="true";  shift ;;
+            -e|--escape) escape_flag="true"; shift ;;
+            *)
+                echo "ERROR: Unknown option: $1" >&2
+                echo "Use --help for usage information" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    paste_cmd=$(detect_clipboard_command paste) || exit 1
+    verify_clipboard_command "$paste_cmd" || exit 1
+
+    if ! content=$(eval "$paste_cmd" 2>/dev/null); then
+        echo "ERROR: Failed to retrieve clipboard content" >&2
+        echo "The clipboard might be empty or the clipboard service might be unavailable" >&2
+        exit 1
+    fi
+
+    if [ "$escape_flag" = "true" ]; then
+        content=$(printf '%s' "$content" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\$/\\$/g; s/`/\\`/g')
+    fi
+    if [ "$quote_flag" = "true" ]; then
+        content="\"$content\""
+    fi
+
+    printf '%s' "$content"
+}
+
+mode="$(basename "$0")"
+if [ "$mode" = "cross-clip" ]; then
+    mode="cross-${1:-}"
+    [ $# -gt 0 ] && shift
+fi
+
+case "$mode" in
+    cross-copy)  do_copy "$@" ;;
+    cross-paste) do_paste "$@" ;;
+    *)           show_usage ;;
+esac

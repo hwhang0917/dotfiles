@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Open a URL or file in a Windows browser from WSL.
+# Invoked directly (wsl-browser zen <url>) or via symlink (wsl-zen <url>).
+# --check: exit 0 if the browser is installed, 1 otherwise.
+
+if [[ -z "$WSL_DISTRO_NAME" ]]; then
+    echo "This script is intended to be run under WSL." >&2
+    exit 1
+fi
+
+browser="$(basename "$0")"
+if [[ "$browser" == "wsl-browser" ]]; then
+    browser="wsl-$1"
+    shift
+fi
+
+case "$browser" in
+    wsl-zen)    BROWSER_PATH="/mnt/c/Program Files/Zen Browser/zen.exe" ;;
+    wsl-chrome) BROWSER_PATH="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ;;
+    wsl-edge)   BROWSER_PATH="/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ;;
+    *)
+        echo "Usage: wsl-browser <zen|chrome|edge> [--check | <url-or-file>]" >&2
+        exit 1
+        ;;
+esac
+
+if [[ ! -f "$BROWSER_PATH" ]]; then
+    [[ "$1" == "--check" ]] && exit 1
+    echo "${browser#wsl-} is not installed in the expected location: $BROWSER_PATH" >&2
+    exit 1
+fi
+[[ "$1" == "--check" ]] && exit 0
+
+URL="$1"
+if [[ ! ("$URL" =~ ^/ && -f "$URL") ]]; then
+    exec "$BROWSER_PATH" "$URL"
+fi
+
+# Local files must be copied somewhere Windows can read before opening
+WINDOWS_TEMP="/mnt/c/Temp"
+mkdir -p "$WINDOWS_TEMP"
+
+FILENAME=$(basename "$URL")
+cp "$URL" "$WINDOWS_TEMP/$FILENAME"
+
+exec "$BROWSER_PATH" "file:///C:/Temp/$FILENAME"

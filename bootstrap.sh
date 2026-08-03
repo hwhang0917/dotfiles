@@ -186,52 +186,30 @@ detect_platform() {
 
 # ── Gum bootstrap ────────────────────────────────────────────
 
+# Use gum for prompts when it's already installed; plain read otherwise
 ensure_gum() {
     if ! $IS_TTY; then
         log_warn "No TTY detected, falling back to basic prompts"
         return
     fi
 
-    if command -v gum &>/dev/null; then
-        HAS_GUM=true
-        return
-    fi
-
-    log_step "gum not found — installing for interactive prompts..."
-
-    if install_pkg gum &>/dev/null || {
-        command -v go &>/dev/null && go install github.com/charmbracelet/gum@latest &>/dev/null
-    }; then
-        if command -v gum &>/dev/null; then
-            HAS_GUM=true
-            log_info "gum installed"
-            return
-        fi
-    fi
-
-    log_warn "Could not install gum, falling back to basic prompts"
+    command -v gum &>/dev/null && HAS_GUM=true
 }
 
 # ── Package name mapping ─────────────────────────────────────
 
+# Prints the package name if the manager ships this tool, empty otherwise.
+# Package names happen to match command names for everything we install.
 pkg_name() {
-    local manager="$1" cmd="$2"
-    case "$manager:$cmd" in
-        pacman:bat)      echo "bat" ;;
-        pacman:eza)      echo "eza" ;;
-        pacman:fzf)      echo "fzf" ;;
-        pacman:gum)      echo "gum" ;;
-        pacman:zoxide)   echo "zoxide" ;;
-        pacman:starship) echo "starship" ;;
-        pacman:fnm)      echo "fnm" ;;
-        apt:bat)         echo "bat" ;;
-        apt:fzf)         echo "fzf" ;;
-        dnf:bat)         echo "bat" ;;
-        dnf:fzf)         echo "fzf" ;;
-        dnf:eza)         echo "eza" ;;
-        dnf:zoxide)      echo "zoxide" ;;
-        brew:*)          echo "$cmd" ;;
-        *)               echo "" ;;
+    local manager="$1" cmd="$2" known=""
+    case "$manager" in
+        pacman) known="bat eza fzf gum zoxide starship fnm" ;;
+        apt)    known="bat fzf" ;;
+        dnf)    known="bat fzf eza zoxide" ;;
+        brew)   known="$cmd" ;;
+    esac
+    case " $known " in
+        *" $cmd "*) echo "$cmd" ;;
     esac
 }
 

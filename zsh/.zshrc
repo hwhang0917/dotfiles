@@ -1,37 +1,3 @@
-# ============ Utility ==============
-function log() {
-    local GREEN='\033[32m'
-    local YELLOW='\033[33m'
-    local RED='\033[31m'
-    local BLUE='\033[34m'
-    local GRAY='\033[2m'
-    local RESET='\033[0m'
-
-    local msg_type="$1"
-    local msg="$2"
-    local comment="$3"
-
-    case "$msg_type" in
-        "INFO")
-            echo -e "${GREEN}[INFO]${RESET} $msg" >&2
-            ;;
-        "WARN")
-            echo -e "${YELLOW}[WARN]${RESET} $msg" >&2
-            ;;
-        "ERROR")
-            echo -e "${RED}[ERROR]${RESET} $msg" >&2
-            ;;
-        *)
-            echo -e "${BLUE}[DEBUG]${RESET} $msg" >&2
-            ;;
-    esac
-
-    if [ -n "$comment" ]; then
-        echo -e "${GRAY}  $comment${RESET}" >&2
-    fi
-}
-# ===================================
-
 # ============== Init ===============
 ZSH_PLUGIN_DIR="$HOME/.zsh-plugins"
 
@@ -97,7 +63,7 @@ MANUAL_INIT=${MANUAL_INIT:-true}
 
 # ============= Plugins =============
 # Managed as git submodules in zsh/.zsh-plugins/
-source "$ZSH_PLUGIN_DIR/ohmyzsh/plugins/git/git.plugin.zsh"
+source "$HOME/.config/zsh/git-aliases.zsh"  # vendored ohmyzsh git plugin
 source "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
 source "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"  # loaded last
 # ===================================
