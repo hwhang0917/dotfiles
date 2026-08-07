@@ -210,6 +210,10 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("swayosd-client --output-volume mute-to
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("swayosd-client --brightness raise"), { repeating = true, locked = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"), { repeating = true, locked = true })
 
+-- Screenshots to clipboard (grim + slurp + wl-clipboard)
+hl.bind("Print", hl.dsp.exec_cmd("grim - | wl-copy"))
+hl.bind("SHIFT + Print", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
+
 -- Requires playerctl
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
