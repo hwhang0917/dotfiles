@@ -9,6 +9,7 @@ Add("runfridge.plugins.utility.zen")
 -- Git
 Add("runfridge.plugins.git.fugitive")
 Add("runfridge.plugins.git.gitsigns")
+Add("runfridge.plugins.git.diffbandit")
 -- Theme
 Add("runfridge.plugins.theme.catppuccin")
 Add("runfridge.plugins.theme.rosepine")
