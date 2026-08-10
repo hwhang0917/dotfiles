@@ -75,11 +75,12 @@ IFS=$'\t' read -r cwd model ctx_pct h5_pct h5_reset d7_pct d7_reset wt_branch <<
   ] | @tsv'
 )"
 
-# Drop the rate-limit gauges where session-less consumers (waybar) can read
-# them; they recompute the countdowns from the raw reset epochs.
+# Drop the rate-limit gauges where session-less consumers (waybar, zebar) can
+# read them; they recompute the countdowns from the raw reset epochs. "ts"
+# lets consumers with several caches (WSL + native Windows) pick the freshest.
 if [ -n "$h5_pct" ]; then
-  printf '{"h5_pct":%s,"h5_reset":%s,"d7_pct":%s,"d7_reset":%s}\n' \
-    "$h5_pct" "${h5_reset:-null}" "${d7_pct:-null}" "${d7_reset:-null}" \
+  printf '{"h5_pct":%s,"h5_reset":%s,"d7_pct":%s,"d7_reset":%s,"ts":%s}\n' \
+    "$h5_pct" "${h5_reset:-null}" "${d7_pct:-null}" "${d7_reset:-null}" "$(date +%s)" \
     >"${XDG_CACHE_HOME:-$HOME/.cache}/claude-usage.json"
 fi
 

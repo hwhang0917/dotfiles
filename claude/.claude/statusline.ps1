@@ -20,6 +20,22 @@ $MODEL_FG = @{ fable = 222; opus = 176; sonnet = 110; haiku = 114 }
 
 $data = [Console]::In.ReadToEnd() | ConvertFrom-Json
 
+# Drop the rate-limit gauges where session-less consumers (zebar) can read
+# them. Mirrors statusline.sh's cache; "ts" lets consumers with several caches
+# (WSL + native Windows) pick the freshest.
+$h5 = $data.rate_limits.five_hour
+if ($null -ne $h5.used_percentage) {
+  $cacheDir = Join-Path $HOME '.cache'
+  New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
+  @{
+    h5_pct   = $h5.used_percentage
+    h5_reset = $h5.resets_at
+    d7_pct   = $data.rate_limits.seven_day.used_percentage
+    d7_reset = $data.rate_limits.seven_day.resets_at
+    ts       = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  } | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $cacheDir 'claude-usage.json') -NoNewline
+}
+
 $model = if ($data.model.display_name) { $data.model.display_name } else { '?' }
 $cwd = if ($data.workspace.current_dir) { $data.workspace.current_dir } else { $data.cwd }
 
