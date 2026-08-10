@@ -42,6 +42,19 @@
       }
     }
   },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v notify-send >/dev/null 2>&1 && jq -r '.message // \"Claude needs your attention\"' | { read -r m; notify-send -a 'Claude Code' 'Claude Code' \"$m\"; } 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
   "effortLevel": "high",
   "tui": "fullscreen",
   "theme": "auto",
