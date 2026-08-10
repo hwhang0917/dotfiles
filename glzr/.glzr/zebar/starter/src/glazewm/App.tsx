@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import * as zebar from "zebar";
-import { getBatteryIcon, getWeatherIcon } from "./icons";
+import { getBatteryIcon } from "./icons";
 import "./styles.css";
 
 // Claude Code 5h/7d rate-limit gauges, mirroring the waybar module. Reads the
@@ -66,12 +66,12 @@ const providers = zebar.createProviderGroup({
   date: { type: "date", formatting: "DDDD tt", refreshInterval: 1000 },
   battery: { type: "battery" },
   memory: { type: "memory" },
-  weather: { type: "weather" },
 });
 
 export default function App() {
   const [output, setOutput] = useState(providers.outputMap);
   const [claude, setClaude] = useState<ClaudeUsage | null>(null);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   useEffect(() => {
     providers.onOutput(() => setOutput(providers.outputMap));
@@ -88,7 +88,6 @@ export default function App() {
   const cpu = output.cpu;
   const battery = output.battery;
   const memory = output.memory;
-  const weather = output.weather;
 
   const p5 = claude ? Math.round(claude.h5_pct) : 0;
   const p7 = claude?.d7_pct != null ? Math.round(claude.d7_pct) : null;
@@ -209,7 +208,12 @@ export default function App() {
           </div>
         )}
 
-        {memory && (
+        {/* Click-to-reveal RAM/CPU, like the waybar drawer group. */}
+        <button
+          className={`stats-toggle nf ${statsOpen ? "nf-md-chevron_right" : "nf-md-chevron_left"}`}
+          onClick={() => setStatsOpen(!statsOpen)}
+        />
+        {statsOpen && memory && (
           <div
             className="memory"
             title={`RAM: ${(memory.usedMemory / 1e9).toFixed(1)} / ${(memory.totalMemory / 1e9).toFixed(1)} GB`}
@@ -219,7 +223,7 @@ export default function App() {
           </div>
         )}
 
-        {cpu && (
+        {statsOpen && cpu && (
           <div
             className="cpu"
             title={`CPU: ${cpu.vendor} | ${cpu.physicalCoreCount} cores / ${cpu.logicalCoreCount} threads | ${(cpu.frequency / 1e3).toFixed(2)} GHz`}
@@ -241,16 +245,6 @@ export default function App() {
             )}
             {getBatteryIcon(battery)}
             {Math.round(battery.chargePercent)}%
-          </div>
-        )}
-
-        {weather && (
-          <div
-            className="weather"
-            title={`Weather: ${weather.status.replace(/_/g, " ")} | ${Math.round(weather.celsiusTemp)}°C | Wind: ${weather.windSpeed} km/h`}
-          >
-            {getWeatherIcon(weather)}
-            {Math.round(weather.celsiusTemp)}°C
           </div>
         )}
       </div>
