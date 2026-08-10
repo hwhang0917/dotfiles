@@ -23,7 +23,16 @@
         "rules": []
       },
       "privileges": {
-        "shellCommands": []
+        "shellCommands": [
+          {
+            "program": "cmd",
+            "argsRegex": "^/c type %USERPROFILE%\\\\\\.cache\\\\claude-usage\\.json$"
+          },
+          {
+            "program": "wsl",
+            "argsRegex": "^-e sh -c cat ~/\\.cache/claude-usage\\.json$"
+          }
+        ]
       },
       "presets": [
         {

@@ -68,8 +68,32 @@ body,
 .network,
 .memory,
 .cpu,
-.battery {
+.battery,
+.claude-usage {
   margin-right: 20px;
+}
+
+/* Same 50/80 thresholds as the waybar module and the statusline. */
+.claude-usage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &.warning {
+    color: #eed49f;
+  }
+
+  &.critical {
+    color: #ed8796;
+  }
+
+  .divider {
+    color: rgb(255 255 255 / 25%);
+  }
+
+  .reset i {
+    margin-right: 4px;
+  }
 }
 
 .workspaces {
