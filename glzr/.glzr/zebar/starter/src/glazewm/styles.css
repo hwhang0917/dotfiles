@@ -102,6 +102,10 @@ body,
     background: none;
     border: 0;
     padding: 0;
+    /* Buttons don't inherit font metrics; without this the icon sits off the
+       row's vertical center. Font-family still comes from .nf. */
+    font-size: inherit;
+    line-height: 1;
     color: rgb(115 130 175 / 95%);
     cursor: pointer;
   }
@@ -153,6 +157,8 @@ body,
   border: 0;
   padding: 0;
   margin-right: 20px;
+  font-size: inherit;
+  line-height: 1;
   color: rgb(115 130 175 / 95%);
   cursor: pointer;
 }
