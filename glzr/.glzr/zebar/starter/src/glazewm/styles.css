@@ -97,6 +97,14 @@ body,
   .reset i {
     margin-right: 4px;
   }
+
+  .refresh {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: rgb(115 130 175 / 95%);
+    cursor: pointer;
+  }
 }
 
 .workspaces {

@@ -205,6 +205,12 @@ export default function App() {
                 )}
               </>
             )}
+            {/* Force-reload the whole widget, not just the usage cache. */}
+            <button
+              className="refresh nf nf-md-refresh"
+              title="Reload widget"
+              onClick={() => window.location.reload()}
+            />
           </div>
         )}
 
