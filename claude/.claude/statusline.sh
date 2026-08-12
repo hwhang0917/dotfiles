@@ -62,18 +62,21 @@ RIGHT_MARGIN=${CLAUDE_STATUSLINE_MARGIN:-4}
 json=$(cat)
 [ -n "${CLAUDE_STATUSLINE_DEBUG:-}" ] && printf '%s\n' "$json" >>"${TMPDIR:-/tmp}/claude-statusline.json"
 
-IFS=$'\t' read -r cwd model ctx_pct h5_pct h5_reset d7_pct d7_reset wt_branch <<<"$(
-  printf '%s' "$json" | jq -r '[
-    (.workspace.current_dir // .cwd // ""),
-    (.model.display_name // "?"),
-    (.context_window.used_percentage // ""),
-    (.rate_limits.five_hour.used_percentage // ""),
-    (.rate_limits.five_hour.resets_at // ""),
-    (.rate_limits.seven_day.used_percentage // ""),
-    (.rate_limits.seven_day.resets_at // ""),
-    (.worktree.branch // "")
-  ] | @tsv'
-)"
+# One field per line, not @tsv: tab is an IFS *whitespace* character, so `read`
+# folds runs of tabs into one separator. An absent field (plan mode reports no
+# context_window) then shifts every later field left and the reset epochs land
+# in the percent slots.
+mapfile -t f < <(printf '%s' "$json" | jq -r '
+  .workspace.current_dir // .cwd // "",
+  .model.display_name // "?",
+  .context_window.used_percentage // "",
+  .rate_limits.five_hour.used_percentage // "",
+  .rate_limits.five_hour.resets_at // "",
+  .rate_limits.seven_day.used_percentage // "",
+  .rate_limits.seven_day.resets_at // "",
+  .worktree.branch // ""')
+cwd=${f[0]-} model=${f[1]-?} ctx_pct=${f[2]-} h5_pct=${f[3]-} h5_reset=${f[4]-}
+d7_pct=${f[5]-} d7_reset=${f[6]-} wt_branch=${f[7]-}
 
 # Drop the rate-limit gauges where session-less consumers (waybar, zebar) can
 # read them; they recompute the countdowns from the raw reset epochs. "ts"

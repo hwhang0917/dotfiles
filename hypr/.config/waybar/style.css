@@ -4,6 +4,12 @@
     font-size:15px;
     font-family: "FiraCode Nerd Font Mono Ret";
 }
+/* Breeze (the GTK theme) paints a bare `.warning` label with the theme
+   background — light grey behind an otherwise see-through bar. Module rules
+   below only set a colour, so undo the background once, globally. */
+.warning {
+    background-color: transparent;
+}
 window#waybar{
     all:unset;
 }

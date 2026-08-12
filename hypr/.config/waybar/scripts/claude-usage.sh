@@ -15,10 +15,11 @@ BAR_CELLS=5
 hide() { printf '{"text":""}\n'; exit 0; }
 [ -s "$CACHE" ] || hide
 
-IFS=$'\t' read -r h5 h5_reset d7 d7_reset <<<"$(
-  jq -r '[(.h5_pct // ""), (.h5_reset // ""), (.d7_pct // ""), (.d7_reset // "")] | @tsv' \
-    "$CACHE" 2>/dev/null
-)"
+# One field per line, not @tsv: `read` with IFS=tab folds runs of tabs, so a
+# null field would shift the reset epochs into the percent slots.
+mapfile -t f < <(jq -r '.h5_pct // "", .h5_reset // "", .d7_pct // "", .d7_reset // ""' \
+  "$CACHE" 2>/dev/null)
+h5=${f[0]-} h5_reset=${f[1]-} d7=${f[2]-} d7_reset=${f[3]-}
 [ -n "$h5" ] || hide
 
 bar() { # $1 = integer percent -> ███░░
