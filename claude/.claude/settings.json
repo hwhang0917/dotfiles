@@ -1,5 +1,18 @@
 {
   "model": "opus[1m]",
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v notify-send >/dev/null 2>&1 && jq -r '.message // \"Claude needs your attention\"' | { read -r m; notify-send -a 'Claude Code' 'Claude Code' \"$m\"; } 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "if uname -s | grep -qiE 'mingw|msys|cygwin'; then powershell -NoProfile -Command '& \"$HOME/.claude/statusline.ps1\"'; else bash \"$HOME/.claude/statusline.sh\"; fi",
@@ -14,7 +27,8 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
-    "humanize-korean@im-not-ai": true
+    "humanize-korean@im-not-ai": true,
+    "diagram-design@diagram-design": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -40,20 +54,13 @@
         "source": "github",
         "repo": "epoko77-ai/im-not-ai"
       }
-    }
-  },
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "command -v notify-send >/dev/null 2>&1 && jq -r '.message // \"Claude needs your attention\"' | { read -r m; notify-send -a 'Claude Code' 'Claude Code' \"$m\"; } 2>/dev/null || true",
-            "async": true
-          }
-        ]
+    },
+    "diagram-design": {
+      "source": {
+        "source": "github",
+        "repo": "cathrynlavery/diagram-design"
       }
-    ]
+    }
   },
   "effortLevel": "high",
   "tui": "fullscreen",
