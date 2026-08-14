@@ -97,8 +97,8 @@ if command -v claude >/dev/null 2>&1; then
     alias cc="claude -c"
     alias cr="claude -r"
 fi
-if command -v claudelytics >/dev/null 2>&1; then
-    alias ca="claudelytics"
+if command -v npx >/dev/null 2>&1; then
+    alias ca="npx ccusage@latest"
 fi
 
 # GNU tool modern replacements
