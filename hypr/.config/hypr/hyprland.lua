@@ -15,6 +15,13 @@ local subMod = "ALT"
 local terminal = "ghostty"
 local fileManager = "dolphin"
 local menu = "wofi --show drun"
+local wallpaperDir = "$HOME/.config/hypr/wallpapers"
+
+-- hyprpaper's IPC takes one monitor per call and silently ignores an empty
+-- monitor field, so walk the monitor list and draw a fresh image for each.
+local shuffleWallpapers = [[hyprctl -j monitors | jq -r '.[].name' | while read -r m; do hyprctl hyprpaper wallpaper "$m,$(find "]]
+	.. wallpaperDir
+	.. [[" -type f \( -iname '*.jpg' -o -iname '*.png' \) | shuf -n1)"; done]]
 
 -----------------
 --- AUTOSTART ---
@@ -168,7 +175,7 @@ hl.bind("CTRL + bracketleft", hl.dsp.exec_cmd("wtype -k Escape"))
 hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("uwsm stop"))
-hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload; " .. shuffleWallpapers))
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(subMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + F", hl.dsp.window.float())
