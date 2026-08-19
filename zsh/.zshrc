@@ -152,3 +152,15 @@ for _conda_base in "$CONDA_ROOT" "$HOME/miniconda3" "$HOME/anaconda3" "$HOME/min
 done
 unset _conda_base
 # ===================================
+
+# ============== Grok ===============
+# Guarded so the block is a no-op on machines without grok installed.
+if [[ -x "$HOME/.grok/bin/grok" ]]; then
+    export PATH="$HOME/.grok/bin:$PATH"
+    if [[ -d "$HOME/.grok/completions/zsh" ]]; then
+        # compinit already ran above; rerun to pick up the added fpath entry.
+        fpath=("$HOME/.grok/completions/zsh" $fpath)
+        compinit -C -d "$zcompdump"
+    fi
+fi
+# ===================================
