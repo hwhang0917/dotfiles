@@ -5,10 +5,10 @@ sort_by = "mtime"
 
 [opener]
 play = [
-    { run = 'mpv "$@"', orphan = true, for = "unix" }
+    { run = 'mpv %s', orphan = true, for = "unix" }
 ]
 view = [
-    { run = 'imv "$@"', orphan = true, for = "unix" }
+    { run = 'imv %s', orphan = true, for = "unix" }
 ]
 
 [open]
