@@ -60,25 +60,10 @@ function Invoke-ChooseMany {
 
 # ── Gum bootstrap ────────────────────────────────────────────
 
+# Use gum for prompts when it's already installed; Read-Host otherwise
 function Install-Gum {
     if (Get-Command gum -ErrorAction SilentlyContinue) {
         $script:HasGum = $true
-        return
-    }
-
-    Write-Step "gum not found - installing for interactive prompts..."
-
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        winget install --id charmbracelet.gum --accept-source-agreements --accept-package-agreements 2>$null
-        # Refresh PATH
-        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-    }
-
-    if (Get-Command gum -ErrorAction SilentlyContinue) {
-        $script:HasGum = $true
-        Write-Info "gum installed"
-    } else {
-        Write-Warn "Could not install gum, falling back to basic prompts"
     }
 }
 

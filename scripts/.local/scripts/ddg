@@ -11,16 +11,7 @@ fi
 url="https://unduck.link/?q=$query"
 
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
-    if wsl-zen --check 2>/dev/null; then
-        wsl-zen "$url"
-    elif wsl-chrome --check 2>/dev/null; then
-        wsl-chrome "$url"
-    elif wsl-edge --check 2>/dev/null; then
-        wsl-edge "$url"
-    else
-        echo "[ERROR] No Windows browser found (Zen, Chrome, or Edge)." >&2
-        exit 1
-    fi
+    wsl-browser auto "$url"
 elif command -v xdg-open >/dev/null 2>&1; then
     xdg-open "$url"
 elif command -v open >/dev/null 2>&1; then

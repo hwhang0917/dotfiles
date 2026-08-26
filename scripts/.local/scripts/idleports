@@ -1,48 +1,18 @@
 #!/bin/sh
 
-# idleports - Show available ports in range 3000-3099
+# idleports - Show available ports in range 3000-3099 (listening ones dimmed)
 
 if ! command -v ss > /dev/null 2>&1; then
     echo "[ERROR] ss is not installed (iproute2)." >&2
     exit 1
 fi
 
-idleports() {
-    cols=10
-    count=0
-    output=""
+used=" $(ss -tln | grep -o ':30[0-9]*' | tr -d ':' | sort -u | tr '\n' ' ')"
 
-    listening_ports=$(sudo ss -tlpn | grep -o ':30[0-9]*' | sed 's/://g' | sort | uniq)
-
-    port=3000
-    while [ "$port" -le 3099 ]; do
-        port_found=false
-        for lp in $listening_ports; do
-            if [ "$lp" = "$port" ]; then
-                port_found=true
-                break
-            fi
-        done
-
-        if [ "$port_found" = true ]; then
-            output="${output}\033[38;5;235m${port}\033[0m  "
-        else
-            output="${output}${port}  "
-        fi
-
-        count=$((count + 1))
-        if [ $((count % cols)) -eq 0 ]; then
-            output="${output}\n"
-        fi
-
-        port=$((port + 1))
-    done
-
-    if [ $((count % cols)) -ne 0 ]; then
-        output="${output}\n"
-    fi
-
-    printf "%b" "$output"
-}
-
-idleports
+for port in $(seq 3000 3099); do
+    case "$used" in
+        *" $port "*) printf '\033[38;5;235m%s\033[0m  ' "$port" ;;
+        *)           printf '%s  ' "$port" ;;
+    esac
+    [ $((port % 10)) -eq 9 ] && printf '\n'
+done

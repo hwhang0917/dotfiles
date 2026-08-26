@@ -2,6 +2,7 @@
 
 # Open a URL or file in a Windows browser from WSL.
 # Invoked directly (wsl-browser zen <url>) or via symlink (wsl-zen <url>).
+# "auto" picks the first installed browser (zen, chrome, edge).
 # --check: exit 0 if the browser is installed, 1 otherwise.
 
 if [[ -z "$WSL_DISTRO_NAME" ]]; then
@@ -9,25 +10,39 @@ if [[ -z "$WSL_DISTRO_NAME" ]]; then
     exit 1
 fi
 
+declare -A BROWSERS=(
+    [zen]="/mnt/c/Program Files/Zen Browser/zen.exe"
+    [chrome]="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+    [edge]="/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+)
+
 browser="$(basename "$0")"
 if [[ "$browser" == "wsl-browser" ]]; then
     browser="wsl-$1"
     shift
 fi
+browser="${browser#wsl-}"
 
-case "$browser" in
-    wsl-zen)    BROWSER_PATH="/mnt/c/Program Files/Zen Browser/zen.exe" ;;
-    wsl-chrome) BROWSER_PATH="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ;;
-    wsl-edge)   BROWSER_PATH="/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ;;
-    *)
-        echo "Usage: wsl-browser <zen|chrome|edge> [--check | <url-or-file>]" >&2
+if [[ "$browser" == "auto" ]]; then
+    for b in zen chrome edge; do
+        [[ -f "${BROWSERS[$b]}" ]] && browser=$b && break
+    done
+    if [[ "$browser" == "auto" ]]; then
+        [[ "$1" == "--check" ]] && exit 1
+        echo "No Windows browser found (Zen, Chrome, or Edge)." >&2
         exit 1
-        ;;
-esac
+    fi
+fi
+
+BROWSER_PATH="${BROWSERS[$browser]:-}"
+if [[ -z "$BROWSER_PATH" ]]; then
+    echo "Usage: wsl-browser <zen|chrome|edge|auto> [--check | <url-or-file>]" >&2
+    exit 1
+fi
 
 if [[ ! -f "$BROWSER_PATH" ]]; then
     [[ "$1" == "--check" ]] && exit 1
-    echo "${browser#wsl-} is not installed in the expected location: $BROWSER_PATH" >&2
+    echo "$browser is not installed in the expected location: $BROWSER_PATH" >&2
     exit 1
 fi
 [[ "$1" == "--check" ]] && exit 0

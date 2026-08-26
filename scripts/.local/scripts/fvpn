@@ -26,15 +26,8 @@ active_ifaces=$(sudo wg show interfaces 2>/dev/null)
 
 # if any VPN is active, offer to bring it down first
 if [ -n "$active_ifaces" ]; then
-    filtered_active=""
-    for iface in $active_ifaces; do
-        [ "$iface" = "wg0" ] && continue
-        if [ -n "$filtered_active" ]; then
-            filtered_active="$filtered_active $iface"
-        else
-            filtered_active="$iface"
-        fi
-    done
+    filtered_active=$(printf '%s\n' $active_ifaces | grep -vx wg0 | tr '\n' ' ')
+    filtered_active=${filtered_active% }
 
     if [ -n "$filtered_active" ]; then
         active_list=$(echo "$filtered_active" | tr ' ' ',' | sed 's/,/, /g')
