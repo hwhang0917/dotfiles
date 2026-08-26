@@ -377,7 +377,7 @@ setup_git_config() {
 
 # Register the clean filter referenced by .gitattributes. Git filters live in
 # .git/config (not tracked), so this must run per clone to hide local /model
-# switches in claude/.claude/settings.json from git.
+# switches in ai/.claude/settings.json from git.
 setup_git_filters() {
     log_step "Registering git clean filters..."
     git -C "$DOTFILES_DIR" config filter.claude-model.clean \

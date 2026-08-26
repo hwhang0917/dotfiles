@@ -161,7 +161,7 @@ Optionally add `includeIf` for work-specific configs:
 
 ### claude-model git filter
 
-`claude/.claude/settings.json` is tracked, but Claude Code's `/model` command
+`ai/.claude/settings.json` is tracked, but Claude Code's `/model` command
 rewrites its `model` field on every switch. To keep the file committable while
 ignoring those local model changes, a git [clean filter](https://git-scm.com/docs/gitattributes#_filter)
 (declared in `.gitattributes`) normalizes the `model` line to a canonical value
