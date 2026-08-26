@@ -128,6 +128,7 @@ source "$HOME/.config/zsh/eval.zsh"
 
 # ========= Manual Services =========
 [[ "$MANUAL_INIT" == "true" && -f "$HOME/.config/zsh/manual-init.zsh" ]] && source "$HOME/.config/zsh/manual-init.zsh"
+[[ -f "$HOME/.config/zsh/init-hosts.zsh" ]] && source "$HOME/.config/zsh/init-hosts.zsh"
 # ===================================
 
 # =========== Local Envs ============
