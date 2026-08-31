@@ -1,8 +1,8 @@
 daemon:
   modules:
-  - Xim
-  - Wayland
-  - Indicator
+    - Xim
+    - Wayland
+    - Indicator
 indicator:
   icon_color: Black
 log:
@@ -49,8 +49,8 @@ engine:
         result: ConsumeIfProcessed
   candidate_font: Noto Sans CJK KR
   xim_preedit_font:
-  - Noto Sans CJK KR
-  - 15.0
+    - Noto Sans CJK KR
+    - 15.0
   latin:
     layout: Qwerty
     preferred_direct: true
@@ -58,8 +58,8 @@ engine:
     layout: sebeolsik-3-90
     word_commit: false
     preedit_johab: Needed
-    layout_addons:
+    addons:
       all:
-      - ComposeJungseongSsang
-      - ComposeChoseongSsang
-      - FlexibleComposeOrder
+        - ComposeJungseongSsang
+        - ComposeChoseongSsang
+        - FlexibleComposeOrder
