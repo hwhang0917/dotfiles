@@ -6,6 +6,8 @@ set nobackup
 set nowritebackup
 set sessionoptions-=options
 
+set background=dark
+
 set undodir=~/.vim_undodir
 set belloff=all
 
