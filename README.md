@@ -175,7 +175,7 @@ manually:
 
 ```bash
 git config filter.claude-model.clean \
-  'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5[1m]\2/'\'''
+  'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5-1[1m]\2/'\'''
 git config filter.claude-model.smudge cat
 ```
 

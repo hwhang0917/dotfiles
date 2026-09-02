@@ -381,7 +381,7 @@ setup_git_config() {
 setup_git_filters() {
     log_step "Registering git clean filters..."
     git -C "$DOTFILES_DIR" config filter.claude-model.clean \
-        'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5[1m]\2/'\'''
+        'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5-1[1m]\2/'\'''
     git -C "$DOTFILES_DIR" config filter.claude-model.smudge cat
     log_info "claude-model filter registered"
 }
