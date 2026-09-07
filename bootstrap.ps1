@@ -202,6 +202,7 @@ function New-Symlinks {
         @{ Name = "Neovim";          Target = "nvim\.config\nvim";                                        Path = (Join-Path $env:LOCALAPPDATA "nvim") },
         @{ Name = "Git config";      Target = "git\.gitconfig";                                           Path = (Join-Path $HOME ".gitconfig") },
         @{ Name = "Git ignore";      Target = "git\.gitignore";                                           Path = (Join-Path $HOME ".gitignore") },
+        @{ Name = "Scripts (sh)";    Target = "scripts\.local\scripts";                                   Path = (Join-Path $HOME ".local\scripts") },
         @{ Name = "Windows Terminal"; Target = "wt\settings.json";                                        Path = (Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json") },
         @{ Name = "Scripts";         Target = "windows\scripts";                                          Path = (Join-Path $HOME "Documents\scripts") },
         @{ Name = "PowerShell";      Target = "windows\profile\Microsoft.PowerShell_profile.ps1";         Path = (Join-Path $HOME "Documents\PowerShell\Microsoft.PowerShell_profile.ps1") }

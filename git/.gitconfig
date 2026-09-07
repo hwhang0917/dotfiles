@@ -36,7 +36,7 @@
     bl = branch -l
     br = branch -r
     ba = branch -la
-    bd = !git-interactive-branch-delete.sh
+    bd = !"$HOME/.local/scripts/git-interactive-branch-delete.sh"
 [commit]
     gpgsign = true
     verbose = true
