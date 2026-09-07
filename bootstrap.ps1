@@ -15,6 +15,7 @@ function Write-Warn  { param([string]$Message) Write-Host "[WARN] $Message" -For
 function Write-Step  { param([string]$Message) Write-Host "[STEP] $Message" -ForegroundColor Blue }
 
 $script:HasGum = $false
+$script:WingetTimeoutSec = 180
 
 # ── Prompts (gum with Read-Host fallback) ─────────────────────
 
@@ -69,6 +70,40 @@ function Install-Gum {
 
 # ── Tool installation ─────────────────────────────────────────
 
+# Run a native command in the background, logging elapsed time until it exits.
+# Returns its stdout, or $null if it hit the timeout and was killed.
+function Invoke-WithProgress {
+    param(
+        [string]$Label,
+        [string]$FilePath,
+        [string[]]$ArgumentList,
+        [int]$TimeoutSec = $script:WingetTimeoutSec
+    )
+
+    $out = New-TemporaryFile
+    $err = New-TemporaryFile
+    Write-Info "$Label ($FilePath $($ArgumentList -join ' '))"
+    $proc = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -NoNewWindow -PassThru `
+        -RedirectStandardOutput $out -RedirectStandardError $err
+    $null = $proc.Handle  # cache the handle, otherwise ExitCode can come back empty
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    while (-not $proc.WaitForExit(5000)) {
+        $elapsed = [int]$sw.Elapsed.TotalSeconds
+        if ($elapsed -ge $TimeoutSec) {
+            $proc.Kill()
+            Write-Warn "$Label timed out after ${elapsed}s, killed"
+            Write-Warn "stderr: $(Get-Content $err -Raw)"
+            Remove-Item $out, $err -ErrorAction SilentlyContinue
+            return $null
+        }
+        Write-Info "$Label still running (${elapsed}s)"
+    }
+    Write-Info "$Label finished in $([int]$sw.Elapsed.TotalSeconds)s (exit $($proc.ExitCode))"
+    $result = Get-Content $out -Raw
+    Remove-Item $out, $err -ErrorAction SilentlyContinue
+    return $result
+}
+
 function Install-WingetPackage {
     param(
         [string]$PackageId,
@@ -104,10 +139,18 @@ function Install-Tools {
         @{ Id = "ajeetdsouza.zoxide";   Name = "zoxide" }
     )
 
-    # One winget call for all packages: per-package `winget list` is slow and,
-    # on a fresh machine, blocks on the source-agreement prompt behind the pipe
-    $installedList = winget list --accept-source-agreements --disable-interactivity 2>$null | Out-String
+    # One winget call for all packages. Skips the msstore source, which is what
+    # usually makes a fresh `winget list` crawl, and runs in the background so
+    # a slow winget is visible instead of looking like a hang.
+    Write-Info "winget: $((Get-Command winget).Source)"
+    $installedList = Invoke-WithProgress -Label "Querying installed packages" -FilePath "winget" `
+        -ArgumentList @("list", "--source", "winget", "--accept-source-agreements", "--disable-interactivity")
+    if ($null -eq $installedList) {
+        Write-Warn "Could not query installed packages, skipping tool install"
+        return
+    }
     $missing = @($packages | Where-Object { $installedList -notmatch [regex]::Escape($_.Id) })
+    Write-Info "Missing: $(if ($missing.Count) { ($missing | ForEach-Object { $_.Name }) -join ', ' } else { 'none' })"
 
     if ($missing.Count -eq 0) {
         Write-Info "All tools already installed"
