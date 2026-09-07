@@ -42,7 +42,9 @@ function Invoke-ChooseMany {
         if ($Selected.Count -gt 0) {
             $args_ += @("--selected", ($Selected -join ","))
         }
-        $result = $Items | gum choose @args_
+        # Items go as arguments: piping them over stdin from PowerShell left gum
+        # waiting for input instead of drawing the picker
+        $result = gum choose @args_ @Items
         if ($LASTEXITCODE -ne 0) { return @() }
         return @($result)
     } else {
@@ -65,6 +67,9 @@ function Invoke-ChooseMany {
 function Install-Gum {
     if (Get-Command gum -ErrorAction SilentlyContinue) {
         $script:HasGum = $true
+        Write-Info "Using gum for prompts"
+    } else {
+        Write-Info "gum not found, using plain prompts"
     }
 }
 
