@@ -75,14 +75,8 @@ function Install-WingetPackage {
         [string]$Name
     )
 
-    $installed = winget list --id $PackageId 2>$null | Select-String $PackageId
-    if ($installed) {
-        Write-Info "$Name is already installed"
-        return
-    }
-
     Write-Info "Installing $Name..."
-    winget install --id $PackageId --accept-source-agreements --accept-package-agreements
+    winget install --id $PackageId --accept-source-agreements --accept-package-agreements --disable-interactivity
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "Failed to install $Name, skipping"
     }
@@ -110,14 +104,10 @@ function Install-Tools {
         @{ Id = "ajeetdsouza.zoxide";   Name = "zoxide" }
     )
 
-    # Find missing tools
-    $missing = @()
-    foreach ($pkg in $packages) {
-        $installed = winget list --id $pkg.Id 2>$null | Select-String $pkg.Id
-        if (-not $installed) {
-            $missing += $pkg
-        }
-    }
+    # One winget call for all packages: per-package `winget list` is slow and,
+    # on a fresh machine, blocks on the source-agreement prompt behind the pipe
+    $installedList = winget list --accept-source-agreements --disable-interactivity 2>$null | Out-String
+    $missing = @($packages | Where-Object { $installedList -notmatch [regex]::Escape($_.Id) })
 
     if ($missing.Count -eq 0) {
         Write-Info "All tools already installed"
