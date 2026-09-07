@@ -139,17 +139,21 @@ function Install-Tools {
         @{ Id = "ajeetdsouza.zoxide";   Name = "zoxide" }
     )
 
-    # One winget call for all packages. Skips the msstore source, which is what
-    # usually makes a fresh `winget list` crawl, and runs in the background so
-    # a slow winget is visible instead of looking like a hang.
+    # One winget call for all packages, run in the background so a slow winget
+    # is visible instead of looking like a hang.
     Write-Info "winget: $((Get-Command winget).Source)"
     $installedList = Invoke-WithProgress -Label "Querying installed packages" -FilePath "winget" `
-        -ArgumentList @("list", "--source", "winget", "--accept-source-agreements", "--disable-interactivity")
+        -ArgumentList @("list", "--accept-source-agreements", "--disable-interactivity")
     if ($null -eq $installedList) {
         Write-Warn "Could not query installed packages, skipping tool install"
         return
     }
-    $missing = @($packages | Where-Object { $installedList -notmatch [regex]::Escape($_.Id) })
+    # Tools installed outside winget (e.g. Zebar via the GlazeWM installer) show
+    # up with an ARP\... id, so also accept a line that starts with the name.
+    $missing = @($packages | Where-Object {
+        $installedList -notmatch [regex]::Escape($_.Id) -and
+        $installedList -notmatch "(?m)^$([regex]::Escape($_.Name))\b"
+    })
     Write-Info "Missing: $(if ($missing.Count) { ($missing | ForEach-Object { $_.Name }) -join ', ' } else { 'none' })"
 
     if ($missing.Count -eq 0) {
