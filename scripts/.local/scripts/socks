@@ -42,25 +42,47 @@ EOF
     exit 1
 }
 
+# Dedicated control socket per port so 'close' can tear down exactly this
+# tunnel without touching any other ControlMaster sessions to the same host.
+control_path() {
+    echo "${XDG_RUNTIME_DIR:-/tmp}/socks-$1.ctl"
+}
+
+# Prints the owning pid, or nothing. Never fails (safe under set -e/pipefail).
 port_pid() {
-    ss -tlnpH "sport = :$1" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1
+    ss -tlnpH "sport = :$1" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1 || true
 }
 
 port_in_use() {
     ss -tlnH "sport = :$1" 2>/dev/null | grep -q .
 }
 
+# Prints the process name for a pid, or "unknown".
+pid_comm() {
+    ps -p "$1" -o comm= 2>/dev/null || echo "unknown"
+}
+
+# Wait up to ~N*0.25s for a condition. Usage: wait_for <tries> <cmd...>
+wait_for() {
+    local tries="$1"; shift
+    for _ in $(seq "${tries}"); do
+        "$@" && return 0
+        sleep 0.25
+    done
+    return 1
+}
+
 cmd_open() {
     local host="${1:-$DEFAULT_HOST}"
     local port="${2:-$DEFAULT_PORT}"
+    local ctl
+    ctl=$(control_path "${port}")
 
     if port_in_use "${port}"; then
         local existing_pid
         existing_pid=$(port_pid "${port}")
         if [[ -n "${existing_pid}" ]]; then
-            local cmd
-            cmd=$(ps -p "${existing_pid}" -o comm= 2>/dev/null || echo "unknown")
-            die "Port ${port} already in use by pid ${existing_pid} (${cmd}). Run 'socks close' first."
+            die "Port ${port} already in use by pid ${existing_pid} ($(pid_comm "${existing_pid}")). Run 'socks close' first."
         fi
         die "Port ${port} already in use."
     fi
@@ -69,21 +91,25 @@ cmd_open() {
         die "SSH host alias '${host}' not found in ~/.ssh/config"
     fi
 
+    # Stale control socket from an unclean exit would make ssh refuse to start.
+    [[ -S "${ctl}" ]] && rm -f "${ctl}"
+
     info "Starting SOCKS5 proxy on ${BOLD}127.0.0.1:${port}${RESET} via ${BOLD}${host}${RESET}..."
 
     # -f: background after auth
     # -N: no remote command (just the tunnel)
-    # -D: dynamic (SOCKS) port forwarding
+    # -D: dynamic (SOCKS) port forwarding, loopback bind by default
     # ExitOnForwardFailure: don't silently succeed if the forward can't bind
-    ssh -fN -D "${port}" \
+    # ControlMaster/ControlPath: own control socket so 'close' is clean
+    ssh -fN -D "127.0.0.1:${port}" \
         -o ExitOnForwardFailure=yes \
         -o ServerAliveInterval=30 \
         -o ServerAliveCountMax=3 \
+        -o ControlMaster=yes \
+        -o ControlPath="${ctl}" \
         "${host}"
 
-    sleep 0.5
-
-    if ! port_in_use "${port}"; then
+    if ! wait_for 12 port_in_use "${port}"; then
         die "SSH backgrounded but nothing is listening on :${port}"
     fi
 
@@ -93,43 +119,45 @@ cmd_open() {
     ok "SOCKS5 proxy alive on :${port} (pid ${pid:-?})"
     echo
     echo "  ${YELLOW}Test:${RESET}    curl --socks5-hostname localhost:${port} https://ifconfig.me"
-    echo "  ${YELLOW}Kill:${RESET}    socks close"
+    echo "  ${YELLOW}Env:${RESET}     export ALL_PROXY=socks5h://127.0.0.1:${port}   # 'h' = remote DNS"
     echo "  ${YELLOW}Firefox:${RESET} SOCKS5  127.0.0.1  ${port}  (check 'Proxy DNS when using SOCKS v5')"
+    echo "  ${YELLOW}Kill:${RESET}    socks close"
 }
 
 cmd_close() {
     local host="${1:-$DEFAULT_HOST}"
     local port="${2:-$DEFAULT_PORT}"
+    local ctl
+    ctl=$(control_path "${port}")
 
     local pid
-    pid=$(port_pid "${port}" || true)
+    pid=$(port_pid "${port}")
 
-    if [[ -z "${pid}" ]]; then
+    if [[ -z "${pid}" ]] && [[ ! -S "${ctl}" ]]; then
         warn "No process listening on :${port} — nothing to kill"
         exit 0
     fi
 
-    info "Found SOCKS proxy on :${port} (pid ${pid})"
+    [[ -n "${pid}" ]] && info "Found SOCKS proxy on :${port} (pid ${pid})"
 
-    if ssh -O exit "${host}" 2>/dev/null; then
-        ok "Sent 'ssh -O exit' to ${host}"
-        sleep 0.3
+    # Preferred: ask the master to exit via its own control socket.
+    if [[ -S "${ctl}" ]] && ssh -O exit -o ControlPath="${ctl}" "${host}" 2>/dev/null; then
+        ok "Sent 'ssh -O exit' via ${ctl}"
     fi
 
-    if kill -0 "${pid}" 2>/dev/null; then
+    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
         info "Sending SIGTERM to pid ${pid}"
         kill "${pid}" 2>/dev/null || true
-        for _ in 1 2 3 4; do
-            sleep 0.5
-            kill -0 "${pid}" 2>/dev/null || break
-        done
+        wait_for 8 bash -c "! kill -0 ${pid} 2>/dev/null" || true
     fi
 
-    if kill -0 "${pid}" 2>/dev/null; then
+    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
         warn "Process still alive, sending SIGKILL"
         kill -9 "${pid}" 2>/dev/null || true
         sleep 0.3
     fi
+
+    rm -f "${ctl}"
 
     if port_in_use "${port}"; then
         fail "Port :${port} is still in use"
@@ -147,12 +175,25 @@ cmd_status() {
         exit 1
     fi
 
-    local pid cmd
+    local pid comm args
     pid=$(port_pid "${port}")
-    cmd=$(ps -p "${pid}" -o args= 2>/dev/null || echo "unknown")
 
-    ok "SOCKS proxy alive on :${port} (pid ${pid:-?})"
-    echo "  ${YELLOW}Process:${RESET} ${cmd}"
+    if [[ -z "${pid}" ]]; then
+        warn "Something is listening on :${port} but its pid isn't visible (not yours?)"
+        exit 1
+    fi
+
+    comm=$(pid_comm "${pid}")
+    args=$(ps -p "${pid}" -o args= 2>/dev/null || echo "unknown")
+
+    if [[ "${comm}" != "ssh" ]]; then
+        warn "Port :${port} is held by ${BOLD}${comm}${RESET} (pid ${pid}), not an ssh tunnel"
+        echo "  ${YELLOW}Process:${RESET} ${args}"
+        exit 1
+    fi
+
+    ok "SOCKS proxy alive on :${port} (pid ${pid})"
+    echo "  ${YELLOW}Process:${RESET} ${args}"
 }
 
 action="${1:-}"
