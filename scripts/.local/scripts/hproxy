@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# hproxy — expose the EC2 loopback Squid as a local HTTP proxy via SSH -L
+#
+# Usage:
+#   hproxy open   [ssh-host] [local-port] [remote-port]   Start (defaults: RFTunnel 1081 3128)
+#   hproxy close  [ssh-host] [local-port]                 Stop
+#   hproxy status [local-port]                            Show whether the proxy is running
+#
+# Aliases:
+#   open  → start, up
+#   close → kill, stop, down
+#
+# Local side binds to 127.0.0.1 only; remote side is Squid on 127.0.0.1:3128
+# which is unreachable except through this SSH forward. Never change either
+# bind to 0.0.0.0.
+
+set -euo pipefail
+
+DEFAULT_HOST="RFTunnel"
+DEFAULT_PORT="1081"
+DEFAULT_REMOTE_PORT="3128"
+
+RED=$'\e[31m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+BLUE=$'\e[34m'
+BOLD=$'\e[1m'
+RESET=$'\e[0m'
+
+die()  { echo "${RED}✗${RESET} $*" >&2; exit 1; }
+info() { echo "${BLUE}→${RESET} $*"; }
+ok()   { echo "${GREEN}✓${RESET} $*"; }
+warn() { echo "${YELLOW}!${RESET} $*"; }
+fail() { echo "${RED}✗${RESET} $*" >&2; }
+
+usage() {
+    cat >&2 <<EOF
+Usage:
+  hproxy open   [ssh-host] [local-port] [remote-port]   Start (defaults: ${DEFAULT_HOST} ${DEFAULT_PORT} ${DEFAULT_REMOTE_PORT})
+  hproxy close  [ssh-host] [local-port]                 Stop
+  hproxy status [local-port]                            Show whether the proxy is running
+
+Aliases:
+  open  → start, up
+  close → kill, stop, down
+EOF
+    exit 1
+}
+
+# Dedicated control socket per local port so 'close' tears down exactly this
+# tunnel and nothing else (e.g. a concurrent 'socks' tunnel to the same host).
+control_path() {
+    echo "${XDG_RUNTIME_DIR:-/tmp}/hproxy-$1.ctl"
+}
+
+# Prints the owning pid, or nothing. Never fails (safe under set -e/pipefail).
+port_pid() {
+    ss -tlnpH "sport = :$1" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1 || true
+}
+
+port_in_use() {
+    ss -tlnH "sport = :$1" 2>/dev/null | grep -q .
+}
+
+pid_comm() {
+    ps -p "$1" -o comm= 2>/dev/null || echo "unknown"
+}
+
+# Wait up to ~N*0.25s for a condition. Usage: wait_for <tries> <cmd...>
+wait_for() {
+    local tries="$1"; shift
+    for _ in $(seq "${tries}"); do
+        "$@" && return 0
+        sleep 0.25
+    done
+    return 1
+}
+
+cmd_open() {
+    local host="${1:-$DEFAULT_HOST}"
+    local port="${2:-$DEFAULT_PORT}"
+    local rport="${3:-$DEFAULT_REMOTE_PORT}"
+    local ctl
+    ctl=$(control_path "${port}")
+
+    if port_in_use "${port}"; then
+        local existing_pid
+        existing_pid=$(port_pid "${port}")
+        if [[ -n "${existing_pid}" ]]; then
+            die "Port ${port} already in use by pid ${existing_pid} ($(pid_comm "${existing_pid}")). Run 'hproxy close' first."
+        fi
+        die "Port ${port} already in use."
+    fi
+
+    if ! ssh -G "${host}" >/dev/null 2>&1; then
+        die "SSH host alias '${host}' not found in ~/.ssh/config"
+    fi
+
+    [[ -S "${ctl}" ]] && rm -f "${ctl}"
+
+    info "Forwarding ${BOLD}127.0.0.1:${port}${RESET} → ${BOLD}${host}${RESET}:127.0.0.1:${rport} (Squid)..."
+
+    # -f: background after auth
+    # -N: no remote command (just the tunnel)
+    # -L: local forward, loopback on both ends
+    # ExitOnForwardFailure: don't silently succeed if the forward can't bind
+    # ControlMaster/ControlPath: own control socket so 'close' is clean
+    ssh -fN -L "127.0.0.1:${port}:127.0.0.1:${rport}" \
+        -o ExitOnForwardFailure=yes \
+        -o ServerAliveInterval=30 \
+        -o ServerAliveCountMax=3 \
+        -o ControlMaster=yes \
+        -o ControlPath="${ctl}" \
+        "${host}"
+
+    if ! wait_for 12 port_in_use "${port}"; then
+        die "SSH backgrounded but nothing is listening on :${port}"
+    fi
+
+    local pid
+    pid=$(port_pid "${port}")
+
+    ok "HTTP proxy alive on :${port} (pid ${pid:-?})"
+    echo
+    echo "  ${YELLOW}Test:${RESET}   curl -x http://127.0.0.1:${port} https://ifconfig.me"
+    echo "  ${YELLOW}Env:${RESET}    export http_proxy=http://127.0.0.1:${port} https_proxy=http://127.0.0.1:${port}"
+    echo "  ${YELLOW}App:${RESET}    HTTP proxy  127.0.0.1  ${port}  (KakaoTalk etc.)"
+    echo "  ${YELLOW}Kill:${RESET}   hproxy close"
+}
+
+cmd_close() {
+    local host="${1:-$DEFAULT_HOST}"
+    local port="${2:-$DEFAULT_PORT}"
+    local ctl
+    ctl=$(control_path "${port}")
+
+    local pid
+    pid=$(port_pid "${port}")
+
+    if [[ -z "${pid}" ]] && [[ ! -S "${ctl}" ]]; then
+        warn "No process listening on :${port} — nothing to kill"
+        exit 0
+    fi
+
+    [[ -n "${pid}" ]] && info "Found HTTP proxy tunnel on :${port} (pid ${pid})"
+
+    if [[ -S "${ctl}" ]] && ssh -O exit -o ControlPath="${ctl}" "${host}" 2>/dev/null; then
+        ok "Sent 'ssh -O exit' via ${ctl}"
+    fi
+
+    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
+        info "Sending SIGTERM to pid ${pid}"
+        kill "${pid}" 2>/dev/null || true
+        wait_for 8 bash -c "! kill -0 ${pid} 2>/dev/null" || true
+    fi
+
+    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
+        warn "Process still alive, sending SIGKILL"
+        kill -9 "${pid}" 2>/dev/null || true
+        sleep 0.3
+    fi
+
+    rm -f "${ctl}"
+
+    if port_in_use "${port}"; then
+        fail "Port :${port} is still in use"
+        exit 1
+    fi
+
+    ok "HTTP proxy tunnel on :${port} stopped"
+}
+
+cmd_status() {
+    local port="${1:-$DEFAULT_PORT}"
+
+    if ! port_in_use "${port}"; then
+        warn "No HTTP proxy tunnel listening on :${port}"
+        exit 1
+    fi
+
+    local pid comm args
+    pid=$(port_pid "${port}")
+
+    if [[ -z "${pid}" ]]; then
+        warn "Something is listening on :${port} but its pid isn't visible (not yours?)"
+        exit 1
+    fi
+
+    comm=$(pid_comm "${pid}")
+    args=$(ps -p "${pid}" -o args= 2>/dev/null || echo "unknown")
+
+    if [[ "${comm}" != "ssh" ]]; then
+        warn "Port :${port} is held by ${BOLD}${comm}${RESET} (pid ${pid}), not an ssh tunnel"
+        echo "  ${YELLOW}Process:${RESET} ${args}"
+        exit 1
+    fi
+
+    ok "HTTP proxy tunnel alive on :${port} (pid ${pid})"
+    echo "  ${YELLOW}Process:${RESET} ${args}"
+
+    # End-to-end check: does Squid actually answer through the tunnel?
+    if curl -sS -m 5 -x "http://127.0.0.1:${port}" -o /dev/null -w '%{http_code}' https://ifconfig.me 2>/dev/null | grep -q '^200$'; then
+        ok "Squid responds through the tunnel"
+    else
+        warn "Tunnel is up but Squid did not answer (is it running on the instance?)"
+    fi
+}
+
+action="${1:-}"
+[[ -z "${action}" ]] && usage
+shift || true
+
+case "${action}" in
+    open|start|up)         cmd_open   "$@" ;;
+    close|kill|stop|down)  cmd_close  "$@" ;;
+    status)                cmd_status "$@" ;;
+    -h|--help|help)        usage ;;
+    *) die "Unknown action: ${action}. Run 'hproxy help' for usage." ;;
+esac
