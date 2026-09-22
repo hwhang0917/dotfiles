@@ -28,7 +28,8 @@
     "superpowers@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
     "humanize-korean@im-not-ai": true,
-    "diagram-design@diagram-design": true
+    "diagram-design@diagram-design": true,
+    "typesafe@typesafe-ai": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -59,6 +60,12 @@
       "source": {
         "source": "github",
         "repo": "cathrynlavery/diagram-design"
+      }
+    },
+    "typesafe-ai": {
+      "source": {
+        "source": "github",
+        "repo": "typesafe-ai/skills"
       }
     }
   },
