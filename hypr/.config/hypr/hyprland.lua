@@ -19,9 +19,10 @@ local wallpaperDir = "$HOME/.config/hypr/wallpapers"
 
 -- hyprpaper's IPC takes one monitor per call and silently ignores an empty
 -- monitor field, so walk the monitor list and draw a fresh image for each.
-local shuffleWallpapers = [[hyprctl -j monitors | jq -r '.[].name' | while read -r m; do hyprctl hyprpaper wallpaper "$m,$(find "]]
-	.. wallpaperDir
-	.. [[" -type f \( -iname '*.jpg' -o -iname '*.png' \) | shuf -n1)"; done]]
+local shuffleWallpapers =
+    [[hyprctl -j monitors | jq -r '.[].name' | while read -r m; do hyprctl hyprpaper wallpaper "$m,$(find "]]
+    .. wallpaperDir
+    .. [[" -type f \( -iname '*.jpg' -o -iname '*.png' \) | shuf -n1)"; done]]
 
 -----------------
 --- AUTOSTART ---
@@ -29,11 +30,11 @@ local shuffleWallpapers = [[hyprctl -j monitors | jq -r '.[].name' | while read 
 
 -- hl.exec_cmd spawns asynchronously, no `&` needed
 hl.on("hyprland.start", function()
-	hl.exec_cmd("uwsm app -- kime")
-	hl.exec_cmd("uwsm app -- hyprpaper")
-	hl.exec_cmd("uwsm app -- waybar")
-	hl.exec_cmd("uwsm app -- swayosd-server")
-	hl.exec_cmd("uwsm app -- dunst")
+    hl.exec_cmd("uwsm app -- kime")
+    hl.exec_cmd("uwsm app -- hyprpaper")
+    hl.exec_cmd("uwsm app -- waybar")
+    hl.exec_cmd("uwsm app -- swayosd-server")
+    hl.exec_cmd("uwsm app -- dunst")
 end)
 
 -----------------------------
@@ -52,93 +53,93 @@ hl.env("QT_QPA_PLATFORM", "wayland")
 
 -- Refer to https://wiki.hypr.land/Configuring/Variables/
 hl.config({
-	ecosystem = {
-		no_donation_nag = true,
-	},
+    ecosystem = {
+        no_donation_nag = true,
+    },
 
-	general = {
-		gaps_in = 5,
-		gaps_out = 10,
+    general = {
+        gaps_in = 5,
+        gaps_out = 10,
 
-		border_size = 2,
+        border_size = 2,
 
-		col = {
-			active_border = { colors = { "rgba(33ccffee)", "rgba(00ff99ee)" }, angle = 45 },
-			inactive_border = "rgba(595959aa)",
-		},
+        col = {
+            active_border = { colors = { "rgba(33ccffee)", "rgba(00ff99ee)" }, angle = 45 },
+            inactive_border = "rgba(595959aa)",
+        },
 
-		-- Set to true enable resizing windows by clicking and dragging on borders and gaps
-		resize_on_border = true,
+        -- Set to true enable resizing windows by clicking and dragging on borders and gaps
+        resize_on_border = true,
 
-		-- Please see https://wiki.hypr.land/Configuring/Tearing/ before you turn this on
-		allow_tearing = false,
+        -- Please see https://wiki.hypr.land/Configuring/Tearing/ before you turn this on
+        allow_tearing = false,
 
-		layout = "dwindle",
-	},
+        layout = "dwindle",
+    },
 
-	decoration = {
-		rounding = 10,
-		rounding_power = 2,
+    decoration = {
+        rounding = 10,
+        rounding_power = 2,
 
-		-- Change transparency of focused and unfocused windows
-		active_opacity = 1.0,
-		inactive_opacity = 1.0,
+        -- Change transparency of focused and unfocused windows
+        active_opacity = 1.0,
+        inactive_opacity = 1.0,
 
-		shadow = {
-			enabled = true,
-			range = 4,
-			render_power = 3,
-			color = "rgba(1a1a1aee)",
-		},
+        shadow = {
+            enabled = true,
+            range = 4,
+            render_power = 3,
+            color = "rgba(1a1a1aee)",
+        },
 
-		blur = {
-			enabled = true,
-			size = 3,
-			passes = 1,
+        blur = {
+            enabled = true,
+            size = 3,
+            passes = 1,
 
-			vibrancy = 0.1696,
-		},
-	},
+            vibrancy = 0.1696,
+        },
+    },
 
-	animations = {
-		enabled = true,
-	},
+    animations = {
+        enabled = true,
+    },
 
-	-- See https://wiki.hypr.land/Configuring/Dwindle-Layout/ for more
-	dwindle = {
-		preserve_split = true, -- You probably want this
-	},
+    -- See https://wiki.hypr.land/Configuring/Dwindle-Layout/ for more
+    dwindle = {
+        preserve_split = true, -- You probably want this
+    },
 
-	-- See https://wiki.hypr.land/Configuring/Master-Layout/ for more
-	master = {
-		new_status = "master",
-	},
+    -- See https://wiki.hypr.land/Configuring/Master-Layout/ for more
+    master = {
+        new_status = "master",
+    },
 
-	misc = {
-		force_default_wallpaper = 0, -- Set to 0 or 1 to disable the anime mascot wallpapers
-		disable_hyprland_logo = true, -- If true disables the random hyprland logo / anime girl background. :(
-	},
+    misc = {
+        force_default_wallpaper = 0,  -- Set to 0 or 1 to disable the anime mascot wallpapers
+        disable_hyprland_logo = true, -- If true disables the random hyprland logo / anime girl background. :(
+    },
 
-	-- Fix Steam blurry
-	xwayland = {
-		force_zero_scaling = true,
-	},
+    -- Fix Steam blurry
+    xwayland = {
+        force_zero_scaling = true,
+    },
 
-	input = {
-		kb_layout = "us",
-		kb_options = "ctrl:nocaps",
+    input = {
+        kb_layout = "us",
+        kb_options = "ctrl:nocaps",
 
-		repeat_rate = 50,
-		repeat_delay = 250,
+        repeat_rate = 50,
+        repeat_delay = 250,
 
-		follow_mouse = 0,
+        follow_mouse = 0,
 
-		sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
+        sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
 
-		touchpad = {
-			natural_scroll = true,
-		},
-	},
+        touchpad = {
+            natural_scroll = true,
+        },
+    },
 })
 
 -- Default animations, see https://wiki.hypr.land/Configuring/Animations/ for more
@@ -192,9 +193,9 @@ hl.bind(mainMod .. " + j", hl.dsp.focus({ direction = "d" }))
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
-	local key = tostring(i % 10)
-	hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
-	hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+    local key = tostring(i % 10)
+    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
 
 -- Example special workspace (scratchpad)
@@ -216,7 +217,8 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("swayosd-client --output-volume mute-to
 
 -- Laptop multimedia keys for volume and LCD brightness
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("swayosd-client --brightness raise"), { repeating = true, locked = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"), { repeating = true, locked = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"),
+    { repeating = true, locked = true })
 
 -- Screenshots to clipboard (grim + slurp + wl-clipboard)
 hl.bind("Print", hl.dsp.exec_cmd("grim - | wl-copy"))
@@ -236,3 +238,12 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 
 -- Ignore maximize requests from apps
 hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
+
+-- RDR2 (Faugus / Rockstar Launcher)
+hl.window_rule({
+    name = "rdr2-fullscreen",
+    match = { class = [[^(RDR2\.exe)$]] },
+    fullscreen = true,
+    immediate = true,
+    idle_inhibit = "always",
+})
