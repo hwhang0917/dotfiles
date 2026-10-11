@@ -240,10 +240,16 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
 
 -- RDR2 (Faugus / Rockstar Launcher)
+-- Faugus runs this through umu + Proton, which names every window
+-- `steam_app_<id>` (observed: steam_app_default), not the exe name. The
+-- Rockstar Launcher shares that class, so the title picks the game.
 hl.window_rule({
     name = "rdr2-fullscreen",
-    match = { class = [[^(RDR2\.exe)$]] },
+    match = { class = "^steam_app_", title = "^Red Dead Redemption 2$" },
     fullscreen = true,
+    -- Wine re-syncs _NET_WM_STATE on focus changes and, since the borderless
+    -- window isn't X-screen-sized, asks to drop fullscreen. Ignore the client.
+    suppress_event = "fullscreen",
     immediate = true,
     idle_inhibit = "always",
 })
