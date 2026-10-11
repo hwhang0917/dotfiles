@@ -251,9 +251,6 @@ hl.window_rule({
     -- it first keeps the fullscreen (verified with a fixed-size X11 window).
     tile = true,
     fullscreen = true,
-    -- Wine re-syncs _NET_WM_STATE on focus changes and, since the borderless
-    -- window isn't X-screen-sized, asks to drop fullscreen. Ignore the client.
-    suppress_event = "fullscreen",
     immediate = true,
     idle_inhibit = "always",
 })
