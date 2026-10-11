@@ -246,6 +246,10 @@ hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
 hl.window_rule({
     name = "rdr2-fullscreen",
     match = { class = "^steam_app_", title = "^Red Dead Redemption 2$" },
+    -- The game maps as a floating XWayland window, and Hyprland 0.56 drops
+    -- rule-set fullscreen on floating X11 windows right after map. Tiling
+    -- it first keeps the fullscreen (verified with a fixed-size X11 window).
+    tile = true,
     fullscreen = true,
     -- Wine re-syncs _NET_WM_STATE on focus changes and, since the borderless
     -- window isn't X-screen-sized, asks to drop fullscreen. Ignore the client.
