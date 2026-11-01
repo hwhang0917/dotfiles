@@ -1,6 +1,7 @@
 # AI Agents
 .claude
 !ai/*
+ai/.grok/
 
 # Wallpapers: curated per machine, too heavy for the repo
 hypr/.config/hypr/wallpapers/
