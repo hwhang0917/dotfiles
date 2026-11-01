@@ -11,3 +11,7 @@ windows/scripts/Set-Routes.config.json
 zsh/.zprofile.local
 zsh/.config/zsh/manual-init.zsh
 zsh/.config/zsh/init-hosts.zsh
+
+# Editor / tool backups
+*.bak
+*.bak.*
