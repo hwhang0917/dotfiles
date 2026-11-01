@@ -57,6 +57,15 @@ hl.config({
         no_donation_nag = true,
     },
 
+    render = {
+        -- 0.57 offers HDR to any fullscreen surface (browser video included) and
+        -- auto-switches the monitor to HDR. DP-1 runs 8-bit, so the switch fails
+        -- ("wide color gamut is enabled but the display is not in 10-bit mode")
+        -- and the screen goes black. Set bitdepth = 10 on the monitor instead
+        -- if real HDR output is ever wanted.
+        cm_auto_hdr = 0,
+    },
+
     general = {
         gaps_in = 5,
         gaps_out = 10,
