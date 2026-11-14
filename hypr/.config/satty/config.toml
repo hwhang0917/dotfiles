@@ -1,0 +1,11 @@
+# Screenshot annotation window, fed by grim/slurp from hyprland.lua.
+# See https://github.com/gabm/Satty#configuration
+[general]
+early-exit = true
+corner-roundness = 12
+initial-tool = "pointer"
+copy-command = "wl-copy"
+output-filename = "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png"
+save-after-copy = false
+actions-on-enter = ["save-to-clipboard"]
+actions-on-escape = ["exit"]

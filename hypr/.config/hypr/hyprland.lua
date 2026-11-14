@@ -229,9 +229,10 @@ hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("swayosd-client --brightness rais
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"),
     { repeating = true, locked = true })
 
--- Screenshots to clipboard (grim + slurp + wl-clipboard)
-hl.bind("Print", hl.dsp.exec_cmd("grim - | wl-copy"))
-hl.bind("SHIFT + Print", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
+-- Screenshots: grim/slurp capture, satty opens the edit window (grim slurp satty)
+local screenshotEditor = "satty --filename -"
+hl.bind("Print", hl.dsp.exec_cmd("grim - | " .. screenshotEditor))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | ' .. screenshotEditor))
 
 -- Requires playerctl
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
