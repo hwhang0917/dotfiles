@@ -86,8 +86,47 @@ return {
             },
         })
 
+        -- Servers may return locations in virtual documents (e.g. jar:// for
+        -- library sources) and serve their text via workspace/textDocumentContent.
+        -- Neovim doesn't fetch it, so jumping there hits an empty buffer.
+        local content_timeout_ms = 10000
+        local content_group = vim.api.nvim_create_augroup("LspTextDocumentContent", {})
+        local content_schemes = {}
+        local function serve_document_content(client, scheme)
+            if content_schemes[scheme] then
+                return
+            end
+            content_schemes[scheme] = true
+            vim.api.nvim_create_autocmd("BufReadCmd", {
+                group = content_group,
+                pattern = scheme .. "://*",
+                callback = function(args)
+                    local uri = args.match
+                    local response = client:request_sync(
+                        "workspace/textDocumentContent", { uri = uri }, content_timeout_ms, args.buf)
+                    local text = response and response.result and response.result.text
+                    if not text then
+                        vim.notify("LSP returned no content for " .. uri, vim.log.levels.WARN)
+                        return
+                    end
+                    vim.bo[args.buf].modifiable = true
+                    vim.api.nvim_buf_set_lines(args.buf, 0, -1, false, vim.split(text, "\r?\n"))
+                    vim.bo[args.buf].modifiable = false
+                    vim.bo[args.buf].modified = false
+                    vim.bo[args.buf].buftype = "nofile"
+                    vim.bo[args.buf].filetype = (client.config.filetypes or {})[1] or ""
+                end,
+            })
+        end
+
         vim.api.nvim_create_autocmd("LspAttach", {
             callback = function(ev)
+                local client = vim.lsp.get_client_by_id(ev.data.client_id)
+                local content = client and vim.tbl_get(client.server_capabilities, "workspace", "textDocumentContent")
+                for _, scheme in ipairs(content and content.schemes or {}) do
+                    serve_document_content(client, scheme)
+                end
+
                 local opts = { buffer = ev.buf, remap = false }
                 vim.keymap.set("n", "gr", function()
                     require("telescope.builtin").lsp_references()
