@@ -13,3 +13,10 @@ api.nvim_create_autocmd("TextYankPost", {
 		vim.highlight.on_yank()
 	end,
 })
+
+-- Claude Code writes its settings files with 2-space indentation; conform's jq
+-- formatter follows shiftwidth, so match it to avoid reformat churn on save
+api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+	pattern = "*/.claude/settings*.json",
+	command = "setlocal shiftwidth=2 softtabstop=2",
+})
