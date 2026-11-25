@@ -377,11 +377,11 @@ setup_git_config() {
 
 # Register the clean filter referenced by .gitattributes. Git filters live in
 # .git/config (not tracked), so this must run per clone to hide local /model
-# switches in ai/.claude/settings.json from git.
+# switches and Claude Code's reindenting of ai/.claude/settings.json from git.
 setup_git_filters() {
     log_step "Registering git clean filters..."
     git -C "$DOTFILES_DIR" config filter.claude-model.clean \
-        'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5-1[1m]\2/'\'''
+        'jq --indent 2 '\''.model = "claude-fable-5-1[1m]"'\'''
     git -C "$DOTFILES_DIR" config filter.claude-model.smudge cat
     log_info "claude-model filter registered"
 }

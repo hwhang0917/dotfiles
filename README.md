@@ -164,10 +164,11 @@ Optionally add `includeIf` for work-specific configs:
 `ai/.claude/settings.json` is tracked, but Claude Code's `/model` command
 rewrites its `model` field on every switch. To keep the file committable while
 ignoring those local model changes, a git [clean filter](https://git-scm.com/docs/gitattributes#_filter)
-(declared in `.gitattributes`) normalizes the `model` line to a canonical value
-whenever git reads the file — your working copy keeps whatever model you set, but
-git never sees the difference. Real edits (plugins, hooks, `effortLevel`) still
-show and commit normally.
+(declared in `.gitattributes`) runs the file through `jq` whenever git reads it,
+pinning `model` to a canonical value and normalizing indentation — your working
+copy keeps whatever model and formatting Claude Code wrote, but git never sees
+the difference. Real edits (plugins, hooks, `effortLevel`) still show and commit
+normally.
 
 Git filters live in `.git/config`, which is **not** cloned, so the filter must be
 registered per machine. `bootstrap.sh` does this automatically; to set it up
@@ -175,7 +176,7 @@ manually:
 
 ```bash
 git config filter.claude-model.clean \
-  'sed -E '\''s/^([[:space:]]*"model"[[:space:]]*:[[:space:]]*")[^"]*(".*)$/\1claude-fable-5-1[1m]\2/'\'''
+  'jq --indent 2 '\''.model = "claude-fable-5-1[1m]"'\'''
 git config filter.claude-model.smudge cat
 ```
 
