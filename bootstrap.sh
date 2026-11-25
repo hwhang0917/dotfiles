@@ -381,7 +381,7 @@ setup_git_config() {
 setup_git_filters() {
     log_step "Registering git clean filters..."
     git -C "$DOTFILES_DIR" config filter.claude-model.clean \
-        'jq --indent 2 '\''.model = "claude-fable-5-1[1m]"'\'''
+        'jq --indent 2 '\''.model = "fable"'\'''
     git -C "$DOTFILES_DIR" config filter.claude-model.smudge cat
     log_info "claude-model filter registered"
 }

@@ -1,5 +1,5 @@
 {
-  "model": "claude-fable-5-1[1m]",
+  "model": "fable",
   "hooks": {
     "Notification": [
       {

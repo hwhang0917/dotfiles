@@ -176,7 +176,7 @@ manually:
 
 ```bash
 git config filter.claude-model.clean \
-  'jq --indent 2 '\''.model = "claude-fable-5-1[1m]"'\'''
+  'jq --indent 2 '\''.model = "fable"'\'''
 git config filter.claude-model.smudge cat
 ```
 
